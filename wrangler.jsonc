@@ -13,6 +13,12 @@
 	"observability": {
 		"enabled": true
 	},
+    "routes": [
+        {
+            "custom_domain": true,
+            "pattern": "lowlifearcade.me"
+        }
+    ],
 	"upload_source_maps": true,
 	"compatibility_flags": [
 		"nodejs_compat"
