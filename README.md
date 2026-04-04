@@ -1,6 +1,6 @@
 # LowLifeArcade
 
-A humble engineer who follows the rule of St Benidict.
+A humble engineer who follows the rule of St Benidict. 🫡
 
 ## Games
 
