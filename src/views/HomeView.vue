@@ -1,5 +1,5 @@
 <template>
   <main>
-    LowLifeArcade was here :)
+    <h1>LowLifeArcade</h1>
   </main>
 </template>
