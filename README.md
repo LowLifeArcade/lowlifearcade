@@ -1,6 +1,6 @@
-# LowLifeArcade
+# LowLifeArcade 🫡
 
-A humble engineer who follows the rule of St Benidict. 🫡
+A humble engineer who follows the [Rule of St Benedict](https://sqlite.org/codeofethics.html#the_rule).
 
 ## Games
 
