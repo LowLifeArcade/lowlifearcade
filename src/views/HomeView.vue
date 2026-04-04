@@ -9,7 +9,7 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as THREE from 'three';
 
