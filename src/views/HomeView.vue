@@ -86,6 +86,8 @@ function init() {
     sun.position.set(4, 2, -6);
     scene.add(sun);
 
+    // use this and remove sun for similar eclipse image (not original we have here)
+    // const rim = new THREE.DirectionalLight('88ccff', 0.06);
     const rim = new THREE.DirectionalLight(0x004488, 1.0);
     rim.position.set(-3, -1, -2);
     scene.add(rim);
