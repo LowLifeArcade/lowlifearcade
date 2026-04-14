@@ -66,6 +66,7 @@ function init() {
     // 🔑 unlock audio on first user interaction
     function unlockAudio() {
         const context = listener.context;
+        console.log({ context })
 
         if (context.state === 'suspended') {
             context.resume();
