@@ -84,7 +84,7 @@ function init() {
     // const renderer = new THREE.WebGLRenderer();
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
+    // controls.enablePan = false;
 
     // renderer.setSize(window.innerWidth, window.innerHeight);
     // document.body.appendChild(renderer.domElement);
@@ -113,17 +113,19 @@ function init() {
     const bigSunGeo = new THREE.SphereGeometry(1.2, 64, 64);
     const sunMesh = new THREE.MeshBasicMaterial({});
     const bigSun = new THREE.Mesh(bigSunGeo, sunMesh);
-    bigSun.position.z = -10.18;
+    bigSun.position.z = -80.18;
     scene.add(bigSun);
     // -- Earch --
-    const earthGeo = new THREE.SphereGeometry(1.2, 64, 64);
+    const earthGeo = new THREE.SphereGeometry(3, 64, 64);
     const earthMesh = new THREE.MeshPhongMaterial({
         color: 0xaaafff,
+        emissive: 1,
+        transparent: false,
     });
     const earth = new THREE.Mesh(earthGeo, earthMesh);
-    earth.position.x = -80.18;
-    earth.position.z = 20.18;
-    earth.position.y = 10
+    earth.position.x = -50.18;
+    // earth.position.z = 20.18;
+    // earth.position.y = 10
     scene.add(earth);
 
     composer = new EffectComposer(renderer);
