@@ -152,10 +152,10 @@ function init() {
 
     // ── Stars ──────────────────────────────────────────────
     const starGeo = new THREE.BufferGeometry();
-    const starCount = 1800;
+    const starCount = 3800;
     const positions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 60;
+        positions[i] = (Math.random() - 0.5) * 100;
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
