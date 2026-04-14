@@ -12,10 +12,23 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
+import { OrbitControls } from 'three/addons/controls/OrbitControls';
 
 const canvasRef = ref(null);
+const loader = new GLTFLoader();
+
 let animationId = null;
-let renderer, scene, camera, globe, atmosphere, stars;
+let renderer,
+    scene,
+    camera,
+    globe,
+    atmosphere,
+    stars,
+    spaceship,
+    orbitAngle = 2;
+const orbitRadius = 2.5,
+    orbitSpeed = 0.03;
 
 function init() {
     const canvas = canvasRef.value;
@@ -36,13 +49,13 @@ function init() {
     const geo = new THREE.SphereGeometry(1, 64, 64);
 
     // Wireframe overlay mesh (latlon lines)
-    const wireMat = new THREE.MeshBasicMaterial({
-        color: 0x00e5ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.08,
-    });
-    const wireGlobe = new THREE.Mesh(geo, wireMat);
+    // const wireMat = new THREE.MeshBasicMaterial({
+    //     color: 0x00e5ff,
+    //     wireframe: true,
+    //     transparent: true,
+    //     opacity: 0.08,
+    // });
+    // const wireGlobe = new THREE.Mesh(geo, wireMat);
     // scene.add(wireGlobe);
 
     // Solid base sphere
@@ -58,14 +71,14 @@ function init() {
     scene.add(globe);
 
     // ── Atmosphere glow (slightly larger sphere) ───────────
-    const atmGeo = new THREE.SphereGeometry(1.12, 64, 64);
-    const atmMat = new THREE.MeshPhongMaterial({
-        color: 0x00aaff,
-        transparent: true,
-        opacity: 0.06,
-        side: THREE.FrontSide,
-    });
-    atmosphere = new THREE.Mesh(atmGeo, atmMat);
+    // const atmGeo = new THREE.SphereGeometry(1.12, 64, 64);
+    // const atmMat = new THREE.MeshPhongMaterial({
+    //     color: 0xdff0ff,
+    //     transparent: true,
+    //     opacity: 0.06,
+    //     side: THREE.FrontSide,
+    // });
+    // atmosphere = new THREE.Mesh(atmGeo, atmMat);
     // scene.add(atmosphere);
 
     // ── Stars ──────────────────────────────────────────────
@@ -75,25 +88,52 @@ function init() {
     for (let i = 0; i < starCount * 3; i++) {
         positions[i] = (Math.random() - 0.5) * 60;
     }
+
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, transparent: true, opacity: 0.7 }));
+    stars = new THREE.Points(
+        starGeo,
+        new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.06,
+            transparent: true,
+            opacity: 0.7,
+        }),
+    );
     scene.add(stars);
 
     // ── Lights ─────────────────────────────────────────────
     // scene.add(new THREE.AmbientLight(0x1a3a6e, 1.2));
 
-    const sun = new THREE.DirectionalLight(0x88ccff, 2.5);
-    sun.position.set(4, 2, -6);
+    const sun = new THREE.DirectionalLight(0xffffff, 6);
+    sun.position.set(-4.5, 1, -16);
     scene.add(sun);
 
     // use this and remove sun for similar eclipse image (not original we have here)
     // const rim = new THREE.DirectionalLight('88ccff', 0.06);
-    const rim = new THREE.DirectionalLight(0x004488, 1.0);
-    rim.position.set(-3, -1, -2);
+    const rim = new THREE.DirectionalLight(0xd2dfff, .2);
+    rim.position.set(-3, 1, -2);
     scene.add(rim);
 
     // ── Resize ─────────────────────────────────────────────
     window.addEventListener('resize', onResize);
+
+    loader.load(
+        './spaceship_eav_2_crab.glb',
+        function (gltf) {
+            spaceship = gltf.scene;
+            scene.add(spaceship);
+            spaceship.traverse(node => node.castShadow = true);
+
+            spaceship.scale.set(0.01, 0.01, 0.01);
+            spaceship.position.set(orbitRadius, 0, 0);
+        },
+        function (xhr) {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        function (error) {
+            console.error('An error occurred loading the GLB:', error);
+        },
+    );
 }
 
 function onResize() {
@@ -108,8 +148,21 @@ function onResize() {
 
 function animate() {
     animationId = requestAnimationFrame(animate);
+
+    if (spaceship) {
+        // Update orbit angle
+        orbitAngle += orbitSpeed * 10;
+
+        // Calculate new position
+        const radians = orbitAngle * (Math.PI / 180);
+        spaceship.position.x = Math.cos(radians) * orbitRadius;
+        spaceship.position.z = Math.sin(radians) * orbitRadius;
+
+        // Make spaceship face direction of travel
+        spaceship.rotation.y = -radians + Math.PI / 2;
+    }
+
     globe.rotation.y += 0.0025;
-    atmosphere.rotation.y += 0.0022;
     stars.rotation.y += 0.0002;
     renderer.render(scene, camera);
 }
@@ -128,12 +181,14 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
+:root {
+    --color: #d2d7dc;
+}
 .globe-wrapper {
     position: relative;
     width: 100%;
     height: 100vh;
-    background: radial-gradient(ellipse at 60% 40%, #071428 0%, #020810 70%);
+    background: radial-gradient(#273039 10%, #000307 55%);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -146,7 +201,7 @@ onBeforeUnmount(() => {
     width: 520px;
     height: 520px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 160, 255, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(28, 32, 34, 0.12) 0%, transparent 70%);
     pointer-events: none;
 }
 
