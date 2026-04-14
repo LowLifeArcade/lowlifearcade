@@ -48,6 +48,34 @@ function init() {
     camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
     camera.position.z = 5.8;
 
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    // 2. Create audio object
+    const sound = new THREE.Audio(listener);
+
+    // 3. Load audio file
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load('/sounds/spaceloop.mp3', function (buffer) {
+        sound.setBuffer(buffer);
+        sound.setLoop(true);
+        sound.setVolume(0.5);
+        sound.play();
+    });
+
+    // 🔑 unlock audio on first user interaction
+    function unlockAudio() {
+        const context = listener.context;
+
+        if (context.state === 'suspended') {
+            context.resume();
+        }
+
+        document.removeEventListener('pointerdown', unlockAudio);
+    }
+
+    document.addEventListener('pointerdown', unlockAudio);
+
     // ── Globe ──────────────────────────────────────────────
     const geo = new THREE.SphereGeometry(1, 64, 64);
 
@@ -173,13 +201,13 @@ function init() {
     // ── Lights ─────────────────────────────────────────────
     // scene.add(new THREE.AmbientLight(0x1a3a6e, 1.2));
 
-    const sun = new THREE.DirectionalLight(0xffffff, .41);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.41);
     sun.position.set(6.5, 1, -16);
     scene.add(sun);
 
     // use this and remove sun for similar eclipse image (not original we have here)
     // const rim = new THREE.DirectionalLight('88ccff', 0.06);
-    const rim = new THREE.DirectionalLight(0xd2dfff, .51);
+    const rim = new THREE.DirectionalLight(0xd2dfff, 0.51);
     rim.position.set(-4, 1, -2);
     scene.add(rim);
 
