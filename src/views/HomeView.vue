@@ -10,22 +10,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, render } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
 
 const canvasRef = ref(null);
 const loader = new GLTFLoader();
 
 let animationId = null;
-let renderer,
-    scene,
-    camera,
-    globe,
-    atmosphere,
-    stars,
+let renderer = new THREE.WebGLRenderer(),
+    scene = new THREE.Scene(),
+    camera = new THREE.PerspectiveCamera(),
+    globe = new THREE.Mesh(),
+    stars = new THREE.Points(),
     spaceship,
+    composer = new EffectComposer(renderer),
     orbitAngle = 2;
 const orbitRadius = 2.5,
     orbitSpeed = 0.03;
@@ -67,8 +70,72 @@ function init() {
         // transparent: true,
         // opacity: 0.95,
     });
-    globe = new THREE.Mesh(geo, mat);
+
+    const textureURL = './moon.jpg';
+    const displacementURL = './moon-2.jpg';
+    // const textureURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg';
+    // const displacementURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/ldem_3_8bit.jpg';
+    // const worldURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/hipp8_s.jpg';
+
+    // const scene = new THREE.Scene();
+
+    // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    // const renderer = new THREE.WebGLRenderer();
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+
+    // renderer.setSize(window.innerWidth, window.innerHeight);
+    // document.body.appendChild(renderer.domElement);
+
+    // const geometry = new THREE.SphereGeometry(2, 60, 60);
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(textureURL);
+    const displacementMap = textureLoader.load(displacementURL);
+
+    const material = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        map: texture,
+        displacementMap: displacementMap,
+        displacementScale: 0,
+        bumpMap: displacementMap,
+        // bumpScale: 0.01,
+        reflectivity: 0,
+        shininess: 0,
+    });
+
+    globe = new THREE.Mesh(geo, material);
     scene.add(globe);
+
+    // -- SUN --
+    const bigSunGeo = new THREE.SphereGeometry(1.2, 64, 64);
+    const sunMesh = new THREE.MeshBasicMaterial({});
+    const bigSun = new THREE.Mesh(bigSunGeo, sunMesh);
+    bigSun.position.z = -10.18;
+    scene.add(bigSun);
+    // -- Earch --
+    const earthGeo = new THREE.SphereGeometry(1.2, 64, 64);
+    const earthMesh = new THREE.MeshPhongMaterial({
+        color: 0xaaafff,
+    });
+    const earth = new THREE.Mesh(earthGeo, earthMesh);
+    earth.position.x = -80.18;
+    earth.position.z = 20.18;
+    earth.position.y = 10
+    scene.add(earth);
+
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.5, // strength
+        0.4, // radius
+        0.002, // threshold
+    );
+    composer.addPass(bloomPass);
 
     // ── Atmosphere glow (slightly larger sphere) ───────────
     // const atmGeo = new THREE.SphereGeometry(1.12, 64, 64);
@@ -78,7 +145,7 @@ function init() {
     //     opacity: 0.06,
     //     side: THREE.FrontSide,
     // });
-    // atmosphere = new THREE.Mesh(atmGeo, atmMat);
+    // const atmosphere = new THREE.Mesh(atmGeo, atmMat);
     // scene.add(atmosphere);
 
     // ── Stars ──────────────────────────────────────────────
@@ -104,14 +171,14 @@ function init() {
     // ── Lights ─────────────────────────────────────────────
     // scene.add(new THREE.AmbientLight(0x1a3a6e, 1.2));
 
-    const sun = new THREE.DirectionalLight(0xffffff, 6);
-    sun.position.set(-4.5, 1, -16);
+    const sun = new THREE.DirectionalLight(0xffffff, .41);
+    sun.position.set(6.5, 1, -16);
     scene.add(sun);
 
     // use this and remove sun for similar eclipse image (not original we have here)
     // const rim = new THREE.DirectionalLight('88ccff', 0.06);
-    const rim = new THREE.DirectionalLight(0xd2dfff, .2);
-    rim.position.set(-3, 1, -2);
+    const rim = new THREE.DirectionalLight(0xd2dfff, .51);
+    rim.position.set(-4, 1, -2);
     scene.add(rim);
 
     // ── Resize ─────────────────────────────────────────────
@@ -122,10 +189,10 @@ function init() {
         function (gltf) {
             spaceship = gltf.scene;
             scene.add(spaceship);
-            spaceship.traverse(node => node.castShadow = true);
+            spaceship.traverse((node) => (node.castShadow = true));
 
             spaceship.scale.set(0.01, 0.01, 0.01);
-            spaceship.position.set(orbitRadius, 0, 0);
+            spaceship.position.set(orbitRadius, 0.2, 0);
         },
         function (xhr) {
             console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -164,7 +231,7 @@ function animate() {
 
     globe.rotation.y += 0.0025;
     stars.rotation.y += 0.0002;
-    renderer.render(scene, camera);
+    composer.render(scene, camera);
 }
 
 onMounted(() => {
@@ -181,9 +248,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-:root {
-    --color: #d2d7dc;
-}
+
 .globe-wrapper {
     position: relative;
     width: 100%;
