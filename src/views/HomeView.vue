@@ -1,16 +1,39 @@
 <template>
     <div class="globe-wrapper">
         <div class="ambient-glow" />
-        <canvas ref="canvasRef" class="globe-canvas" />
-        <div class="label">
+        <canvas
+            ref="canvasRef"
+            class="globe-canvas"
+        />
+        <div
+            v-if="gameState"
+            class="label"
+        >
             <span class="dot" />
-            SCANNING
+            {{ gameState.toUpperCase() }}
+            <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
+        </div>
+        <div class="hud">
+            <ul>
+                <li @click="toggleState">{{ state.scene }} :scene</li>
+                <li class="music">
+                    <div @click="onToggleSound">{{ audioListenerState === AL_STATE.running ? 'on' : 'off' }} :sound</div>
+                    <div class="credits">
+                        music by
+                        <a
+                            href="https://pixabay.com/users/idoberg-34953295/"
+                            target="_blank"
+                            >IdoBerg</a
+                        >
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, render } from 'vue';
+import { ref, onMounted, onBeforeUnmount, render, computed, watch, reactive } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
@@ -18,8 +41,28 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
 
+const SCENES = {
+    sun: 'sun',
+    earth: 'earth',
+    moon: 'moon',
+    space: 'space',
+};
+const AL_STATE = {
+    running: 'running',
+    suspended: 'suspended',
+};
+const GAME_STATE = {
+    scanning: 'scanning',
+    loading: 'loading',
+};
 const canvasRef = ref(null);
+const audioListenerState = ref(AL_STATE.running);
+const gameState = ref(GAME_STATE.loading);
+const state = reactive({
+    scene: SCENES.moon,
+});
 const loader = new GLTFLoader();
+const loadingBar = ref(0);
 
 let animationId = null;
 let renderer = new THREE.WebGLRenderer(),
@@ -27,11 +70,39 @@ let renderer = new THREE.WebGLRenderer(),
     camera = new THREE.PerspectiveCamera(),
     globe = new THREE.Mesh(),
     stars = new THREE.Points(),
-    spaceship,
     composer = new EffectComposer(renderer),
-    orbitAngle = 2;
-const orbitRadius = 2.5,
+    audioListener = new THREE.AudioListener(),
+    sound = new THREE.Audio(audioListener),
+    spaceship,
+    earth,
+    moving = true,
+    controls,
+    orbitAngle = 2,
+    orbitRadius = 2.5,
     orbitSpeed = 0.03;
+
+function onToggleSound() {
+    if (audioListener?.context?.state === 'suspended') {
+        audioListener?.context.resume();
+        audioListenerState.value = AL_STATE.running;
+    } else {
+        audioListener?.context.suspend();
+        audioListenerState.value = AL_STATE.suspended;
+    }
+}
+
+function toggleState() {
+    if (state.scene === SCENES.moon) {
+        state.scene = SCENES.sun;
+        moving = true;
+    } else if (state.scene === SCENES.sun) {
+        state.scene = SCENES.earth;
+        moving = true;
+    } else if (state.scene === SCENES.earth) {
+        state.scene = SCENES.moon;
+        moving = true;
+    }
+}
 
 function init() {
     const canvas = canvasRef.value;
@@ -48,13 +119,8 @@ function init() {
     camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
     camera.position.z = 5.8;
 
-    const listener = new THREE.AudioListener();
-    camera.add(listener);
+    camera.add(audioListener);
 
-    // 2. Create audio object
-    const sound = new THREE.Audio(listener);
-
-    // 3. Load audio file
     const audioLoader = new THREE.AudioLoader();
     audioLoader.load('/sounds/spaceloop.mp3', function (buffer) {
         sound.setBuffer(buffer);
@@ -65,11 +131,10 @@ function init() {
 
     // 🔑 unlock audio on first user interaction
     function unlockAudio() {
-        const context = listener.context;
-        console.log({ context })
-
-        if (context.state === 'suspended') {
-            context.resume();
+        state.scene = SCENES.sun;
+        if (audioListener?.context?.state === 'suspended') {
+            audioListener?.context.resume();
+            // audioListenerState.value = AL_STATE.running;
         }
 
         document.removeEventListener('pointerdown', unlockAudio);
@@ -112,7 +177,14 @@ function init() {
 
     // const renderer = new THREE.WebGLRenderer();
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+
+    // controls.addEventListener('change', () => {
+    //     console.log(camera.position);
+    // });
+
     // controls.enablePan = false;
 
     // renderer.setSize(window.innerWidth, window.innerHeight);
@@ -151,7 +223,8 @@ function init() {
         emissive: 1,
         transparent: false,
     });
-    const earth = new THREE.Mesh(earthGeo, earthMesh);
+
+    earth = new THREE.Mesh(earthGeo, earthMesh);
     earth.position.x = -50.18;
     // earth.position.z = 20.18;
     // earth.position.y = 10
@@ -227,6 +300,11 @@ function init() {
         },
         function (xhr) {
             console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+            loadingBar.value = (xhr.loaded / xhr.total) * 100;
+
+            if ((xhr.loaded / xhr.total) * 100 === 100) {
+                gameState.value = GAME_STATE.scanning;
+            }
         },
         function (error) {
             console.error('An error occurred loading the GLB:', error);
@@ -244,8 +322,13 @@ function onResize() {
     renderer.setSize(W, H);
 }
 
+const targetSunPosition = new THREE.Vector3(1, 1, 10);
+const targetSun = new THREE.Vector3(0, 0, 0);
+const currentLookAt = new THREE.Vector3();
+
 function animate() {
     animationId = requestAnimationFrame(animate);
+    controls.update();
 
     if (spaceship) {
         // Update orbit angle
@@ -258,6 +341,17 @@ function animate() {
 
         // Make spaceship face direction of travel
         spaceship.rotation.y = -radians + Math.PI / 2;
+    }
+
+    if (state.scene === SCENES.sun && moving) {
+        camera.position.lerp(targetSunPosition, 0.05); // smooth factor (0–1)
+
+        currentLookAt.lerp(targetSun, 0.05);
+        camera.lookAt(currentLookAt);
+
+        if (camera.position.distanceTo(targetSunPosition) < 0.1) {
+            moving = false;
+        }
     }
 
     globe.rotation.y += 0.0025;
@@ -273,6 +367,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
     cancelAnimationFrame(animationId);
     window.removeEventListener('resize', onResize);
+
+    if (sound) {
+        sound.stop();
+        sound.disconnect();
+    }
+
+    if (audioListener) {
+        camera.remove(audioListener);
+        audioListener.context.close();
+    }
     renderer.dispose();
 });
 </script>
@@ -281,6 +385,7 @@ onBeforeUnmount(() => {
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .globe-wrapper {
+    font-family: 'Share Tech Mono', monospace;
     position: relative;
     width: 100%;
     height: 100vh;
@@ -307,12 +412,10 @@ onBeforeUnmount(() => {
     display: block;
 }
 
-/* HUD label bottom-left */
 .label {
     position: absolute;
     bottom: 2rem;
     left: 2rem;
-    font-family: 'Share Tech Mono', monospace;
     font-size: 0.7rem;
     letter-spacing: 0.25em;
     color: rgba(0, 200, 255, 0.5);
@@ -320,15 +423,40 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 0.5rem;
     user-select: none;
+
+    .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00e5ff;
+        box-shadow: 0 0 6px #00e5ff;
+        animation: pulse 2s ease-in-out infinite;
+    }
 }
 
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #00e5ff;
-    box-shadow: 0 0 6px #00e5ff;
-    animation: pulse 2s ease-in-out infinite;
+.hud {
+    font-size: 0.5rem;
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    color: rgb(106, 168, 197);
+
+    ul {
+        list-style: none;
+
+        li {
+            cursor: pointer;
+            text-align: end;
+        }
+    }
+
+    .music {
+        padding: unset;
+
+        .credits {
+            font-size: 0.3rem;
+        }
+    }
 }
 
 @keyframes pulse {
