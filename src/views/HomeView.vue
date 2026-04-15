@@ -6,18 +6,18 @@
             class="globe-canvas"
         />
         <div
-            v-if="gameState"
+            v-if="state.game"
             class="label"
         >
             <span class="dot" />
-            {{ gameState.toUpperCase() }}
+            {{ state.game.toUpperCase() }}
             <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
         </div>
         <div class="hud">
             <ul>
                 <li @click="toggleState">{{ state.scene }} :scene</li>
                 <li class="music">
-                    <div @click="onToggleSound">{{ audioListenerState === AL_STATE.running ? 'on' : 'off' }} :sound</div>
+                    <div @click="onToggleSound">{{ state.audio === AL_STATE.running ? 'on' : 'off' }} :sound</div>
                     <div class="credits">
                         music by
                         <a
@@ -55,14 +55,18 @@ const GAME_STATE = {
     scanning: 'scanning',
     loading: 'loading',
 };
+
 const canvasRef = ref(null);
-const audioListenerState = ref(AL_STATE.running);
-const gameState = ref(GAME_STATE.loading);
+
 const state = reactive({
     scene: SCENES.moon,
+    game: GAME_STATE.loading,
+    audio: AL_STATE.running,
 });
 const loader = new GLTFLoader();
 const loadingBar = ref(0);
+const ctrl = new AbortController();
+const eventOpts = { signal: ctrl.signal };
 
 let animationId = null;
 let renderer = new THREE.WebGLRenderer(),
@@ -76,6 +80,7 @@ let renderer = new THREE.WebGLRenderer(),
     spaceship,
     earth,
     moving = true,
+    switchable = true,
     controls,
     orbitAngle = 2,
     orbitRadius = 2.5,
@@ -84,23 +89,31 @@ let renderer = new THREE.WebGLRenderer(),
 function onToggleSound() {
     if (audioListener?.context?.state === 'suspended') {
         audioListener?.context.resume();
-        audioListenerState.value = AL_STATE.running;
+        state.audio = AL_STATE.running;
     } else {
         audioListener?.context.suspend();
-        audioListenerState.value = AL_STATE.suspended;
+        state.audio = AL_STATE.suspended;
     }
 }
 
 function toggleState() {
+    if (!switchable) {
+        return;
+    }
+
+    controls.enabled = false;
     if (state.scene === SCENES.moon) {
         state.scene = SCENES.sun;
         moving = true;
+        switchable = false;
     } else if (state.scene === SCENES.sun) {
         state.scene = SCENES.earth;
         moving = true;
+        switchable = false;
     } else if (state.scene === SCENES.earth) {
         state.scene = SCENES.moon;
         moving = true;
+        switchable = false;
     }
 }
 
@@ -129,18 +142,33 @@ function init() {
         sound.play();
     });
 
-    // 🔑 unlock audio on first user interaction
-    function unlockAudio() {
-        state.scene = SCENES.sun;
-        if (audioListener?.context?.state === 'suspended') {
-            audioListener?.context.resume();
-            // audioListenerState.value = AL_STATE.running;
+    function initAction(e) {
+        const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
+        if (!keys.includes(e?.key)) {
+            state.scene = SCENES.sun;
         }
 
-        document.removeEventListener('pointerdown', unlockAudio);
+
+        if (audioListener?.context?.state === 'suspended') {
+            audioListener?.context.resume();
+        }
+
+        document.removeEventListener('pointerdown', initAction);
+        document.removeEventListener('keydown', initAction);
     }
 
-    document.addEventListener('pointerdown', unlockAudio);
+    document.addEventListener('pointerdown', initAction);
+    document.addEventListener('keydown', initAction);
+    document.addEventListener(
+        'keydown',
+        (e) => {
+            const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
+            if (keys.includes(e.key)) {
+                toggleState();
+            }
+        },
+        eventOpts,
+    );
 
     // ── Globe ──────────────────────────────────────────────
     const geo = new THREE.SphereGeometry(1, 64, 64);
@@ -167,15 +195,6 @@ function init() {
 
     const textureURL = './moon.jpg';
     const displacementURL = './moon-2.jpg';
-    // const textureURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg';
-    // const displacementURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/ldem_3_8bit.jpg';
-    // const worldURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/hipp8_s.jpg';
-
-    // const scene = new THREE.Scene();
-
-    // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-    // const renderer = new THREE.WebGLRenderer();
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -220,8 +239,13 @@ function init() {
     const earthGeo = new THREE.SphereGeometry(3, 64, 64);
     const earthMesh = new THREE.MeshPhongMaterial({
         color: 0xaaafff,
-        emissive: 1,
-        transparent: false,
+        // emissive: 1,
+        // transparent: false,
+        emissive: 0x000333,
+        emissiveIntensity: 0.02,
+        // shininess: 20,
+        // transparent: true,
+        // opacity: 0.95,
     });
 
     earth = new THREE.Mesh(earthGeo, earthMesh);
@@ -270,17 +294,14 @@ function init() {
             opacity: 0.7,
         }),
     );
+
     scene.add(stars);
 
     // ── Lights ─────────────────────────────────────────────
-    // scene.add(new THREE.AmbientLight(0x1a3a6e, 1.2));
-
     const sun = new THREE.DirectionalLight(0xffffff, 0.41);
     sun.position.set(6.5, 1, -16);
     scene.add(sun);
 
-    // use this and remove sun for similar eclipse image (not original we have here)
-    // const rim = new THREE.DirectionalLight('88ccff', 0.06);
     const rim = new THREE.DirectionalLight(0xd2dfff, 0.51);
     rim.position.set(-4, 1, -2);
     scene.add(rim);
@@ -303,7 +324,7 @@ function init() {
             loadingBar.value = (xhr.loaded / xhr.total) * 100;
 
             if ((xhr.loaded / xhr.total) * 100 === 100) {
-                gameState.value = GAME_STATE.scanning;
+                state.game = GAME_STATE.scanning;
             }
         },
         function (error) {
@@ -322,9 +343,47 @@ function onResize() {
     renderer.setSize(W, H);
 }
 
-const targetSunPosition = new THREE.Vector3(1, 1, 10);
-const targetSun = new THREE.Vector3(0, 0, 0);
 const currentLookAt = new THREE.Vector3();
+const targets = {
+    sun: {
+        camera: new THREE.Vector3(1.614101934079007, 0.05827171062183323, 1.63277437998612),
+        loc: new THREE.Vector3(1.2, 0, 0),
+    },
+    earth: {
+        camera: new THREE.Vector3(1.187330832077383, 1.3996101001244262, 1.9398882467499785),
+        loc: new THREE.Vector3(-1.2, 1, 1),
+    },
+    moon: {
+        camera: new THREE.Vector3(0.02705811711985545, 0.20869967182489138, 4.284386682929132),
+        loc: new THREE.Vector3(0, 0, 0),
+    },
+};
+
+function handleSceneSwitch(target = { loc: '', camera: '' }) {
+    if (!moving) {
+        return;
+    }
+
+    camera.position.lerp(target.camera, 0.05); // smooth factor (0–1)
+    currentLookAt.lerp(target.loc, 0.05);
+    camera.lookAt(currentLookAt);
+
+    const positionSwitchable = camera.position.distanceTo(target.camera) < 0.3;
+    const lookSwitchable = currentLookAt.distanceTo(target.loc) < 0.3;
+    const positionDone = camera.position.distanceTo(target.camera) < 0.001;
+    const lookDone = currentLookAt.distanceTo(target.loc) < 0.001;
+
+    if (positionSwitchable && lookSwitchable) {
+        switchable = true;
+    }
+
+    if (positionDone && lookDone) {
+        camera.position.copy(target.camera);
+        controls.target.copy(target.loc);
+        controls.update();
+        moving = false;
+    }
+}
 
 function animate() {
     animationId = requestAnimationFrame(animate);
@@ -343,15 +402,12 @@ function animate() {
         spaceship.rotation.y = -radians + Math.PI / 2;
     }
 
-    if (state.scene === SCENES.sun && moving) {
-        camera.position.lerp(targetSunPosition, 0.05); // smooth factor (0–1)
+    handleSceneSwitch(targets[state.scene]);
 
-        currentLookAt.lerp(targetSun, 0.05);
-        camera.lookAt(currentLookAt);
-
-        if (camera.position.distanceTo(targetSunPosition) < 0.1) {
-            moving = false;
-        }
+    if (moving) {
+        controls.enabled = false;
+    } else {
+        controls.enabled = true;
     }
 
     globe.rotation.y += 0.0025;
@@ -377,6 +433,8 @@ onBeforeUnmount(() => {
         camera.remove(audioListener);
         audioListener.context.close();
     }
+
+    ctrl.abort();
     renderer.dispose();
 });
 </script>
@@ -435,7 +493,7 @@ onBeforeUnmount(() => {
 }
 
 .hud {
-    font-size: 0.5rem;
+    font-size: 1.2rem;
     position: absolute;
     bottom: 2rem;
     right: 2rem;
@@ -454,7 +512,7 @@ onBeforeUnmount(() => {
         padding: unset;
 
         .credits {
-            font-size: 0.3rem;
+            font-size: 0.8rem;
         }
     }
 }
