@@ -36,11 +36,12 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, render, computed, watch, reactive } from 'vue';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
-import { OrbitControls } from 'three/addons/controls/OrbitControls';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
+// .js is needed for type inference
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 const NAV_KEYS = {
     forward: ['Enter', 'ArrowRight', 'ArrowUp', ' '],
@@ -82,6 +83,7 @@ let renderer = new THREE.WebGLRenderer(),
     composer = new EffectComposer(renderer),
     audioListener = new THREE.AudioListener(),
     sound = new THREE.Audio(audioListener),
+    /** @type {THREE.Group<THREE.Object3DEventMap>} */
     spaceship,
     earth,
     moving = true,
@@ -338,6 +340,7 @@ function init() {
         './spaceship_eav_2_crab.glb',
         function (gltf) {
             spaceship = gltf.scene;
+
             scene.add(spaceship);
             spaceship.traverse((node) => (node.castShadow = true));
 
@@ -345,8 +348,8 @@ function init() {
             spaceship.position.set(orbitRadius, 0.2, 0);
         },
         function (xhr) {
-            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
             loadingBar.value = (xhr.loaded / xhr.total) * 100;
+            console.log(loadingBar.value + '% loaded');
 
             if ((xhr.loaded / xhr.total) * 100 === 100) {
                 state.game = GAME_STATE.scanning;
@@ -360,9 +363,13 @@ function init() {
 
 function onResize() {
     const canvas = canvasRef.value;
-    if (!canvas) return;
+    if (!canvas) {
+        return;
+    }
+
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
+
     camera.aspect = W / H;
     camera.updateProjectionMatrix();
     renderer.setSize(W, H);
@@ -384,7 +391,7 @@ const targets = {
     },
 };
 
-function handleSceneSwitch(target = { loc: '', camera: '' }) {
+function handleCameraSwitch(target = { loc: '', camera: '' }) {
     if (!moving) {
         return;
     }
@@ -409,12 +416,14 @@ function handleSceneSwitch(target = { loc: '', camera: '' }) {
         moving = false;
     }
 }
+let bobTime = 0;
+let yawTime = 0;
+function handleSpaceshipSwitch(scene) {
+    if (!spaceship) {
+        return;
+    }
 
-function animate() {
-    animationId = requestAnimationFrame(animate);
-    controls.update();
-
-    if (spaceship) {
+    if (scene === SCENES.moon) {
         // Update orbit angle
         orbitAngle += orbitSpeed * 10;
 
@@ -425,10 +434,53 @@ function animate() {
 
         // Make spaceship face direction of travel
         spaceship.rotation.y = -radians + Math.PI / 2;
-    }
+        spaceship.rotation.z = 0;
 
-    let target //= SCENES.earth
-    handleSceneSwitch(targets[target ?? state.scene]);
+    } else if (scene === SCENES.earth) {
+        const bobBase = 0.2;
+        const yawBase = .3;
+        spaceship.position.set(-2, 0, 2);
+        bobTime += 0.08; // speed of bobbing
+        yawTime += 0.02;
+
+        const bobHeight = Math.sin(bobTime) * 0.01; // amplitude
+        const yaw = Math.cos(yawTime) * 0.08; // amplitude
+        spaceship.position.y = bobBase + bobHeight;
+        spaceship.rotation.y = yawBase + yaw;
+        spaceship.rotation.z = 0;
+    } else if (scene === SCENES.sun) {
+        const bobBase = 1.2;
+        spaceship.position.set(3.5, 0, -5);
+        bobTime += 0.08; // speed of bobbing
+        yawTime += 0.05;
+
+        const bobHeight = Math.sin(bobTime) * 0.001; // amplitude
+        const yaw = Math.cos(yawTime) * -0.05; // amplitude
+        spaceship.position.y = bobBase + bobHeight;
+        spaceship.rotation.y = 2;
+        spaceship.rotation.z = -0.51;
+    }
+}
+
+function animate() {
+    animationId = requestAnimationFrame(animate);
+    controls.update();
+
+    // if (spaceship) {
+    //     // Update orbit angle
+    //     orbitAngle += orbitSpeed * 10;
+
+    //     // Calculate new position
+    //     const radians = orbitAngle * (Math.PI / 180);
+    //     spaceship.position.x = Math.cos(radians) * orbitRadius;
+    //     spaceship.position.z = Math.sin(radians) * orbitRadius;
+
+    //     // Make spaceship face direction of travel
+    //     spaceship.rotation.y = -radians + Math.PI / 2;
+    // }
+
+    handleCameraSwitch(targets[state.scene]);
+    handleSpaceshipSwitch(state.scene);
 
     if (moving) {
         controls.enabled = false;
