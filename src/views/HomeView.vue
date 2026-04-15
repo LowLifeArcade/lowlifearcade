@@ -6,7 +6,7 @@
             class="globe-canvas"
         />
         <div
-            v-if="state.game"
+            v-if="hudActive"
             class="label"
         >
             <span class="dot" />
@@ -14,10 +14,15 @@
             <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
         </div>
         <div class="middle">
-            <span v-if="state.scene === SCENES.space">Press Enter</span>
-            <span v-else>Nav: use arrow keys</span>
+            <span v-if="hudActive">Nav: use arrow keys</span>
         </div>
-        <div class="hud">
+        <div class="onscreen">
+            <span v-if="!hudActive">Press Enter</span>
+        </div>
+        <div
+            v-if="hudActive"
+            class="hud"
+        >
             <ul>
                 <li>{{ state.scene }} :scene</li>
                 <li class="music">
@@ -49,6 +54,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 const NAV_KEYS = {
     forward: ['Enter', 'ArrowRight', 'ArrowUp', ' '],
     backward: ['ArrowLeft', 'ArrowDown'],
+    exit: ['Escape'],
 };
 const SCENES = {
     sun: 'sun',
@@ -76,6 +82,7 @@ const loader = new GLTFLoader();
 const loadingBar = ref(0);
 const ctrl = new AbortController();
 const eventOpts = { signal: ctrl.signal };
+const hudActive = computed(() => state.scene !== SCENES.space);
 
 let animationId = null;
 let renderer = new THREE.WebGLRenderer(),
@@ -107,11 +114,21 @@ function onToggleSound() {
 }
 
 function toggleState(key) {
-    if (!switchable) {
+    if (NAV_KEYS.exit.includes(key)) {
+        state.scene = SCENES.space;
+        audioListener?.context.suspend();
+        return;
+    }
+
+    if (!switchable && key !== 'Enter') {
         return;
     }
 
     controls.enabled = false;
+
+    if ((state.audio = AL_STATE.running)) {
+        audioListener?.context.resume();
+    }
 
     if (state.scene === SCENES.moon) {
         if (NAV_KEYS.forward.includes(key)) {
@@ -191,7 +208,7 @@ function init() {
     document.addEventListener(
         'keydown',
         (e) => {
-            const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
+            const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'Escape'];
             if (keys.includes(e.key)) {
                 toggleState(e.key);
             }
@@ -597,6 +614,12 @@ onBeforeUnmount(() => {
     position: absolute;
     bottom: 2rem;
     color: white;
+}
+
+.onscreen {
+    position: absolute;
+    color: white;
+    font-size: 1rem;
 }
 
 @keyframes pulse {
