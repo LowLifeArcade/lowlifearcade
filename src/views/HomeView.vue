@@ -13,7 +13,10 @@
             {{ state.game.toUpperCase() }}
             <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
         </div>
-        <div class="middle">Nav: use arrow keys</div>
+        <div class="middle">
+            <span v-if="state.scene === SCENES.space">Press Enter</span>
+            <span v-else>Nav: use arrow keys</span>
+        </div>
         <div class="hud">
             <ul>
                 <li>{{ state.scene }} :scene</li>
@@ -65,7 +68,7 @@ const GAME_STATE = {
 const canvasRef = ref(null);
 
 const state = reactive({
-    scene: SCENES.moon,
+    scene: SCENES.space,
     game: GAME_STATE.loading,
     audio: AL_STATE.running,
 });
@@ -135,6 +138,10 @@ function toggleState(key) {
             state.scene = SCENES.sun;
         }
 
+        moving = true;
+        switchable = false;
+    } else if (state.scene === SCENES.space) {
+        state.scene = SCENES.moon;
         moving = true;
         switchable = false;
     }
@@ -258,7 +265,7 @@ function init() {
     bigSun.position.z = -80.18;
     scene.add(bigSun);
 
-    // -- Earch --
+    // -- Earth --
     const earthTexture = textureLoader.load('./earthmap1k.jpg');
     // const earthDisplacementMap = textureLoader.load(displacementURL);
     const earthGeo = new THREE.SphereGeometry(3, 64, 64);
@@ -308,7 +315,7 @@ function init() {
     const starCount = 3800;
     const positions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 100;
+        positions[i] = (Math.random() - 0.5) * 200;
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -316,7 +323,7 @@ function init() {
         starGeo,
         new THREE.PointsMaterial({
             color: 0xffffff,
-            size: 0.06,
+            size: 0.1,
             transparent: true,
             opacity: 0.7,
         }),
@@ -389,6 +396,10 @@ const targets = {
         camera: new THREE.Vector3(0.02705811711985545, 0.20869967182489138, 4.284386682929132),
         loc: new THREE.Vector3(0, 0, 0),
     },
+    space: {
+        camera: new THREE.Vector3(0, 0, 10),
+        loc: new THREE.Vector3(0, 0, 0),
+    },
 };
 
 function handleCameraSwitch(target = { loc: '', camera: '' }) {
@@ -400,8 +411,8 @@ function handleCameraSwitch(target = { loc: '', camera: '' }) {
     currentLookAt.lerp(target.loc, 0.05);
     camera.lookAt(currentLookAt);
 
-    const positionSwitchable = camera.position.distanceTo(target.camera) < 0.3;
-    const lookSwitchable = currentLookAt.distanceTo(target.loc) < 0.3;
+    const positionSwitchable = camera.position.distanceTo(target.camera) < 0.8;
+    const lookSwitchable = currentLookAt.distanceTo(target.loc) < 0.8;
     const positionDone = camera.position.distanceTo(target.camera) < 0.001;
     const lookDone = currentLookAt.distanceTo(target.loc) < 0.001;
 
@@ -418,12 +429,13 @@ function handleCameraSwitch(target = { loc: '', camera: '' }) {
 }
 let bobTime = 0;
 let yawTime = 0;
+const bobBase = 0.2;
 function handleSpaceshipSwitch(scene) {
     if (!spaceship) {
         return;
     }
 
-    if (scene === SCENES.moon) {
+    if ([SCENES.moon, SCENES.space, SCENES.sun].includes(scene)) {
         // Update orbit angle
         orbitAngle += orbitSpeed * 10;
 
@@ -433,12 +445,10 @@ function handleSpaceshipSwitch(scene) {
         spaceship.position.z = Math.sin(radians) * orbitRadius;
 
         // Make spaceship face direction of travel
-        spaceship.rotation.y = -radians + Math.PI / 2;
+        spaceship.rotation.y = bobBase + -radians + Math.PI / 2;
         spaceship.rotation.z = 0;
-
     } else if (scene === SCENES.earth) {
-        const bobBase = 0.2;
-        const yawBase = .3;
+        const yawBase = 0.3;
         spaceship.position.set(-2, 0, 2);
         bobTime += 0.08; // speed of bobbing
         yawTime += 0.02;
@@ -465,19 +475,6 @@ function handleSpaceshipSwitch(scene) {
 function animate() {
     animationId = requestAnimationFrame(animate);
     controls.update();
-
-    // if (spaceship) {
-    //     // Update orbit angle
-    //     orbitAngle += orbitSpeed * 10;
-
-    //     // Calculate new position
-    //     const radians = orbitAngle * (Math.PI / 180);
-    //     spaceship.position.x = Math.cos(radians) * orbitRadius;
-    //     spaceship.position.z = Math.sin(radians) * orbitRadius;
-
-    //     // Make spaceship face direction of travel
-    //     spaceship.rotation.y = -radians + Math.PI / 2;
-    // }
 
     handleCameraSwitch(targets[state.scene]);
     handleSpaceshipSwitch(state.scene);
