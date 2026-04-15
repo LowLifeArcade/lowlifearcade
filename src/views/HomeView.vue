@@ -496,10 +496,10 @@ function animate() {
     handleCameraSwitch(targets[state.scene]);
     handleSpaceshipSwitch(state.scene);
 
-    if (moving) {
-        controls.enabled = false;
-    } else {
+    if (switchable) {
         controls.enabled = true;
+    } else {
+        controls.enabled = false;
     }
 
     globe.rotation.y += 0.0025;
