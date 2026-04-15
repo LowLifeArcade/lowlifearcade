@@ -13,9 +13,10 @@
             {{ state.game.toUpperCase() }}
             <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
         </div>
+        <div class="middle">Nav: use arrow keys</div>
         <div class="hud">
             <ul>
-                <li @click="toggleState">{{ state.scene }} :scene</li>
+                <li>{{ state.scene }} :scene</li>
                 <li class="music">
                     <div @click="onToggleSound">{{ state.audio === AL_STATE.running ? 'on' : 'off' }} :sound</div>
                     <div class="credits">
@@ -41,6 +42,10 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
 
+const NAV_KEYS = {
+    forward: ['Enter', 'ArrowRight', 'ArrowUp', ' '],
+    backward: ['ArrowLeft', 'ArrowDown'],
+};
 const SCENES = {
     sun: 'sun',
     earth: 'earth',
@@ -96,22 +101,38 @@ function onToggleSound() {
     }
 }
 
-function toggleState() {
+function toggleState(key) {
     if (!switchable) {
         return;
     }
 
     controls.enabled = false;
+
     if (state.scene === SCENES.moon) {
-        state.scene = SCENES.sun;
+        if (NAV_KEYS.forward.includes(key)) {
+            state.scene = SCENES.sun;
+        } else {
+            state.scene = SCENES.earth;
+        }
+
         moving = true;
         switchable = false;
     } else if (state.scene === SCENES.sun) {
-        state.scene = SCENES.earth;
+        if (NAV_KEYS.forward.includes(key)) {
+            state.scene = SCENES.earth;
+        } else {
+            state.scene = SCENES.moon;
+        }
+
         moving = true;
         switchable = false;
     } else if (state.scene === SCENES.earth) {
-        state.scene = SCENES.moon;
+        if (NAV_KEYS.forward.includes(key)) {
+            state.scene = SCENES.moon;
+        } else {
+            state.scene = SCENES.sun;
+        }
+
         moving = true;
         switchable = false;
     }
@@ -142,29 +163,28 @@ function init() {
         sound.play();
     });
 
-    function initAction(e) {
+    function unlockAudio(e) {
         const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
-        if (!keys.includes(e?.key)) {
-            state.scene = SCENES.sun;
+        if (e?.key && !keys.includes(e?.key)) {
+            return;
         }
-
 
         if (audioListener?.context?.state === 'suspended') {
             audioListener?.context.resume();
         }
 
-        document.removeEventListener('pointerdown', initAction);
-        document.removeEventListener('keydown', initAction);
+        document.removeEventListener('pointerdown', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
     }
 
-    document.addEventListener('pointerdown', initAction);
-    document.addEventListener('keydown', initAction);
+    document.addEventListener('pointerdown', unlockAudio, eventOpts);
+    document.addEventListener('keydown', unlockAudio, eventOpts);
     document.addEventListener(
         'keydown',
         (e) => {
             const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
             if (keys.includes(e.key)) {
-                toggleState();
+                toggleState(e.key);
             }
         },
         eventOpts,
@@ -515,6 +535,12 @@ onBeforeUnmount(() => {
             font-size: 0.8rem;
         }
     }
+}
+
+.middle {
+    position: absolute;
+    bottom: 2rem;
+    color: white;
 }
 
 @keyframes pulse {
