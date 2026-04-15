@@ -255,15 +255,20 @@ function init() {
     const bigSun = new THREE.Mesh(bigSunGeo, sunMesh);
     bigSun.position.z = -80.18;
     scene.add(bigSun);
+
     // -- Earch --
+    const earthTexture = textureLoader.load('./earthmap1k.jpg');
+    // const earthDisplacementMap = textureLoader.load(displacementURL);
     const earthGeo = new THREE.SphereGeometry(3, 64, 64);
     const earthMesh = new THREE.MeshPhongMaterial({
         color: 0xaaafff,
+        map: earthTexture,
+        bumpMap: displacementMap,
         // emissive: 1,
         // transparent: false,
         emissive: 0x000333,
-        emissiveIntensity: 0.02,
-        // shininess: 20,
+        emissiveIntensity: 0.1,
+        shininess: 20,
         // transparent: true,
         // opacity: 0.95,
     });
@@ -422,7 +427,8 @@ function animate() {
         spaceship.rotation.y = -radians + Math.PI / 2;
     }
 
-    handleSceneSwitch(targets[state.scene]);
+    let target //= SCENES.earth
+    handleSceneSwitch(targets[target ?? state.scene]);
 
     if (moving) {
         controls.enabled = false;
@@ -431,6 +437,7 @@ function animate() {
     }
 
     globe.rotation.y += 0.0025;
+    earth.rotation.y += 0.0012;
     stars.rotation.y += 0.0002;
     composer.render(scene, camera);
 }
