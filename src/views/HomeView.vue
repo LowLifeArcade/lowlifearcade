@@ -5,13 +5,22 @@
             ref="canvasRef"
             class="globe-canvas"
         />
-        <div
-            v-if="hudActive"
-            class="label"
-        >
-            <span class="dot" />
-            {{ state.game.toUpperCase() }}
-            <span v-if="loadingBar !== 100">% {{ loadingBar }}</span>
+
+        <div class="label">
+            <ul>
+                <li
+                    v-for="(msg, i) in displayMsgs"
+                    class="msg"
+                >
+                    <span>
+                        {{ msg.toUpperCase() }}
+                    </span>
+                    <span
+                        v-if="i + 1 === displayMsgs.length"
+                        class="dot"
+                    />
+                </li>
+            </ul>
         </div>
         <div class="middle">
             <span v-if="hudActive">Nav: use arrow keys</span>
@@ -67,7 +76,7 @@ const AL_STATE = {
     suspended: 'suspended',
 };
 const GAME_STATE = {
-    scanning: 'scanning',
+    active: 'active',
     loading: 'loading',
 };
 
@@ -83,6 +92,100 @@ const loadingBar = ref(0);
 const ctrl = new AbortController();
 const eventOpts = { signal: ctrl.signal };
 const hudActive = computed(() => state.scene !== SCENES.space);
+
+let id;
+const displayMsgs = ref([]);
+const MSGS = {
+    moon: [
+        ['scanning moon surface', 1000],
+        ['Anomalous surface findings', 200],
+        ['Collecting', 2000],
+        ['...', 100],
+        ['...', 0],
+        ['...', 200],
+        ['...', 10],
+        ['...', 200],
+        ['...', 20],
+        ['...', 20],
+        ['...', 300],
+        ['checksum', 2000],
+        ['Sample collected', 100],
+    ],
+    sun: [
+        ['measuring flare levels', 1000],
+        ['...', 200],
+        ['...', 10],
+        ['...', 200],
+        ['...', 20],
+        ['...', 20],
+        ['checksum', 1000],
+        ['barsum', 300],
+        ['...', 200],
+        ['...', 20],
+        ['...', 20],
+        ['checksum', 1000],
+        ['800 Wm−2', 1000],
+    ],
+    earth: [
+        ['measuring earth shine', 1000],
+        ['...', 200],
+        ['...', 10],
+        ['checksum', 1000],
+        ['...', 200],
+        ['...', 20],
+        ['...', 20],
+        ['checksum', 1000],
+        ['215um', 1000],
+    ],
+    space: [
+        ['scafolding', 1000],
+        ['...', 0],
+        ['...', 300],
+        ['...', 30],
+        ['checksum', 1000],
+        ['e.g.r.o.', 100],
+        ['...', 200],
+        ['...', 500],
+        ['checksum', 500],
+        ['Low life arcade active', 20],
+    ],
+};
+let int;
+watch(
+    () => state.scene,
+    async () => {
+        displayMsgs.value = [];
+        if (int) {
+            clearInterval(int);
+        }
+        if (id) {
+            clearTimeout(id);
+        }
+
+        for await (const [msg, time] of MSGS[state.scene]) {
+            displayMsgs.value.push('');
+
+            await new Promise((res) => (id = setTimeout(res, time)));
+            await new Promise((res) => {
+                let i = 0;
+                let curr = '';
+
+                int = setInterval(() => {
+                    curr = msg[i];
+                    i++;
+
+                    displayMsgs.value[displayMsgs.value?.length - 1] += curr;
+
+                    if (i >= msg.length) {
+                        clearInterval(int);
+                        res();
+                    }
+                }, 30);
+            });
+        }
+    },
+    { immediate: true },
+);
 
 let animationId = null;
 let renderer = new THREE.WebGLRenderer(),
@@ -114,7 +217,7 @@ function onToggleSound() {
 }
 
 function toggleState(key) {
-    if (NAV_KEYS.exit.includes(key)) {
+    if (NAV_KEYS.exit.includes(key) && audioListener?.context?.state === 'running') {
         state.scene = SCENES.space;
         audioListener?.context.suspend();
         return;
@@ -126,8 +229,8 @@ function toggleState(key) {
 
     controls.enabled = false;
 
-    if ((state.audio = AL_STATE.running)) {
-        audioListener?.context.resume();
+    if (state.audio === AL_STATE.running && audioListener?.context?.state === 'suspended') {
+        audioListener?.context?.resume();
     }
 
     if (state.scene === SCENES.moon) {
@@ -199,11 +302,11 @@ function init() {
             audioListener?.context.resume();
         }
 
-        document.removeEventListener('pointerdown', unlockAudio);
+        // document.removeEventListener('pointerdown', unlockAudio);
         document.removeEventListener('keydown', unlockAudio);
     }
 
-    document.addEventListener('pointerdown', unlockAudio, eventOpts);
+    // document.addEventListener('pointerdown', unlockAudio, eventOpts);
     document.addEventListener('keydown', unlockAudio, eventOpts);
     document.addEventListener(
         'keydown',
@@ -332,7 +435,7 @@ function init() {
     const starCount = 3800;
     const positions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 200;
+        positions[i] = (Math.random() - 0.5) * 170;
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -373,10 +476,10 @@ function init() {
         },
         function (xhr) {
             loadingBar.value = (xhr.loaded / xhr.total) * 100;
-            console.log(loadingBar.value + '% loaded');
+            // console.log(loadingBar.value + '% loaded');
 
             if ((xhr.loaded / xhr.total) * 100 === 100) {
-                state.game = GAME_STATE.scanning;
+                state.game = GAME_STATE.active;
             }
         },
         function (error) {
@@ -524,7 +627,7 @@ onBeforeUnmount(() => {
 
     if (audioListener) {
         camera.remove(audioListener);
-        audioListener.context.close();
+        audioListener.context?.suspend();
     }
 
     ctrl.abort();
@@ -582,6 +685,14 @@ onBeforeUnmount(() => {
         background: #00e5ff;
         box-shadow: 0 0 6px #00e5ff;
         animation: pulse 2s ease-in-out infinite;
+        /* display: flex; */
+        margin-inline: 0.1rem;
+    }
+
+    .msg {
+        /* white-space: pre-wrap; */
+        display: flex;
+        align-items: center;
     }
 }
 
