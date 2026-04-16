@@ -1,6 +1,5 @@
 <template>
     <div class="globe-wrapper">
-        <div class="ambient-glow" />
         <canvas
             ref="canvasRef"
             class="globe-canvas"
@@ -359,6 +358,7 @@ let renderer = new THREE.WebGLRenderer(),
     spaceship,
     earth,
     moving = true,
+    initActionTaken = false,
     orbitAngle = 2,
     orbitRadius = 2.5,
     orbitSpeed = 0.03;
@@ -422,6 +422,10 @@ function toggleState(key) {
     const forward = NAV_KEYS.forward.includes(key);
     const back = NAV_KEYS.backward.includes(key);
 
+    handleDirection({ forward, back });
+}
+
+function handleDirection({ forward, back }) {
     if (state.scene === SCENES.moon) {
         if (forward) {
             state.scene = SCENES.sun;
@@ -495,11 +499,12 @@ function init() {
             state.scene = SCENES.moon;
         }
 
-        document.removeEventListener('pointerdown', initAction);
+        document.removeEventListener('mousedown', initAction);
         document.removeEventListener('keydown', initAction);
+        initActionTaken = true;
     }
 
-    document.addEventListener('pointerdown', initAction, eventOpts);
+    document.addEventListener('mousedown', initAction, eventOpts);
     document.addEventListener('keydown', initAction, eventOpts);
     document.addEventListener(
         'keydown',
@@ -512,6 +517,91 @@ function init() {
         },
         eventOpts,
     );
+
+    let touchstartX = 0;
+    let touchendX = 0;
+    let touchstartY = 0;
+    let touchendY = 0;
+
+    const zone = document.getElementById('swipeZone') || document;
+
+    zone.addEventListener(
+        'touchstart',
+        (e) => {
+            touchstartX = e.changedTouches[0].screenX;
+            touchstartY = e.changedTouches[0].screenY;
+        },
+        false,
+    );
+
+    zone.addEventListener(
+        'touchend',
+        (e) => {
+            touchendX = e.changedTouches[0].screenX;
+            touchendY = e.changedTouches[0].screenY;
+
+            if (!initActionTaken) {
+                initActionTaken = true;
+                return;
+            }
+
+            handleGesture();
+        },
+        false,
+    );
+
+    function handleGesture() {
+        const deltaX = touchendX - touchstartX;
+        const deltaY = touchendY - touchstartY;
+        const DIRS = {
+            left: 'left',
+            right: 'right',
+            up: 'up',
+            down: 'down',
+        };
+        let forward = true;
+        let swipe;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX > 0) {
+                swipe = DIRS.right;
+                console.log('Swiped Right');
+                forward = true;
+            } else {
+                swipe = DIRS.left;
+                forward = false;
+                console.log('Swiped Left');
+            }
+        } else {
+            if (deltaY > 0) {
+                swipe = DIRS.down;
+                forward = false;
+                console.log('Swiped Down');
+            } else {
+                forward = true;
+                swipe = DIRS.up;
+                console.log('Swiped Up');
+            }
+        }
+
+        if (state.audio === AL_STATE.running && audioListener?.context?.state === 'suspended') {
+            audioListener?.context?.resume();
+        }
+
+        if (swipe === DIRS.down) {
+            state.scene = SCENES.space;
+            moving = true;
+            switchable.value = false;
+
+            if (audioListener?.context?.state === 'running') {
+                audioListener?.context.suspend();
+            }
+
+            return;
+        }
+
+        handleDirection({ forward, back: !forward });
+    }
 
     // ── Globe ──────────────────────────────────────────────
     const geo = new THREE.SphereGeometry(1, 64, 64);
@@ -835,16 +925,6 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* soft cyan bloom behind the globe */
-.ambient-glow {
-    position: absolute;
-    width: 520px;
-    height: 520px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(28, 32, 34, 0.12) 0%, transparent 70%);
-    pointer-events: none;
 }
 
 .globe-canvas {
