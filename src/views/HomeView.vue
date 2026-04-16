@@ -133,10 +133,7 @@
                     <div class="bg"></div>
                     <div class="content">
                         <h1>mission</h1>
-                        <p>
-                            To engineer cutting edge solutions for emerging requirements in the 21st century, particularly in the realm of
-                            science and fundamental human needs.
-                        </p>
+                        <p>To apply engineering toward solving essential human problems in a rapidly changing world.</p>
                         <h3>Technologies</h3>
                         <ul class="main">
                             <li>
@@ -152,6 +149,7 @@
                                     <li>Node / Deno / Bun</li>
                                     <li>Vue / Nuxt</li>
                                     <li>React / Next / TanStack</li>
+                                    <li>Three.js</li>
                                 </ul>
                             </li>
                             <li>
@@ -503,19 +501,18 @@ function init() {
     scene.add(bigSun);
 
     // -- Earth --
-    const earthTexture = textureLoader.load('./earthmap1k.jpg');
-    // const earthDisplacementMap = textureLoader.load(displacementURL);
+    const earthTexture = textureLoader.load('./earth_terrain.jpg');
+    const earthDisplacementMap = textureLoader.load('./earth_terrain.jpg');
     const earthGeo = new THREE.SphereGeometry(3, 64, 64);
     const earthMesh = new THREE.MeshPhongMaterial({
         color: 0xaaafff,
         map: earthTexture,
-        bumpMap: displacementMap,
-        // emissive: 1,
-        // transparent: false,
+        bumpMap: earthDisplacementMap,
+        emissive: 1,
+        bumpScale: 1.1,
         emissive: 0x000333,
         emissiveIntensity: 0.1,
         shininess: 20,
-        // transparent: true,
         // opacity: 0.95,
     });
 
@@ -869,7 +866,8 @@ onBeforeUnmount(() => {
     padding: 2rem;
 
     .bg {
-        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.695) 56%, transparent 92%);
+        /* background: radial-gradient(circle at center, rgba(0, 0, 0, 0.695) 56%, transparent 92%); */
+        background: radial-gradient(rgba(0, 0, 0, 0.7) 10.6%, transparent 87.5%);
         position: absolute;
         top: 0;
         left: 0;
@@ -912,13 +910,13 @@ onBeforeUnmount(() => {
         a {
             font-size: 1.2rem;
             display: inline-block;
-            margin-bottom: .6rem;
+            margin-bottom: 0.6rem;
         }
 
         .desc {
             /* margin-block: 0.75rem; */
             /* font-size: .9rem; */
-            padding: .5rem;
+            padding: 0.5rem;
         }
     }
 
