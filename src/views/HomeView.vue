@@ -950,18 +950,20 @@ onBeforeUnmount(() => {
         justify-content: flex-end;
 
         .sun {
-            max-width: 350px;
+            max-width: 400px;
         }
     }
 
     &:has(.moon) {
-        right: 20%;
+        padding-left: 20rem;
+        /* right: 20%; */
         max-width: 380px;
     }
 
     &:has(.earth) {
+        padding-left: 10rem;
         top: 16%;
-        right: 24%;
+        /* right: 24%; */
 
         .earth {
             max-width: 450px;
