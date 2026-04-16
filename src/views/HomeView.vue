@@ -55,35 +55,59 @@
                         <ul class="main resume">
                             <li>
                                 <span>LowLifeArcade Inc</span>
-                                <span><span class="position">engineer | </span><span class="dates">Mar 2026 - Current&nbsp;</span></span>
+                                <span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Mar 2026 - Current&nbsp;</span></span
+                                >
                             </li>
                             <li>
                                 <span>Discogs Inc</span>
-                                <span><span class="position">engineer | </span><span class="dates">Nov 2025 - Mar 2026</span></span>
+                                <span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Nov 2025 - Mar 2026</span></span
+                                >
                             </li>
                             <li>
                                 <span>PeopleFinders Inc</span>
-                                <span><span class="position">engineer | </span><span class="dates">Apr 2023 - Nov 2025</span></span>
+                                <span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Apr 2023 - Nov 2025</span></span
+                                >
                             </li>
                             <li>
                                 <span>MHF Foundation</span
-                                ><span><span class="position">engineer | </span><span class="dates">Jun 2022 - Mar 2023</span></span>
+                                ><span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Jun 2022 - Mar 2023</span></span
+                                >
                             </li>
                             <li>
                                 <span>IT Contractor</span>
-                                <span><span class="position">engineer | </span><span class="dates">Mar 2020 - Jun 2022</span></span>
+                                <span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Mar 2020 - Jun 2022</span></span
+                                >
                             </li>
                             <li>
                                 <span>Filmmaker</span>
-                                <span><span class="position">cinematographer | </span><span class="dates">Jan 2015 - Dec 2020</span></span>
+                                <span
+                                    ><span class="position">cinematographer | </span
+                                    ><span class="dates">Jan 2015 - Dec 2020</span></span
+                                >
                             </li>
                             <li>
                                 <span>LootCrate</span>
-                                <span> <span class="position">data warehouse | </span><span class="dates">Aug 2013 - Jan 2015</span></span>
+                                <span>
+                                    <span class="position">data warehouse | </span
+                                    ><span class="dates">Aug 2013 - Jan 2015</span></span
+                                >
                             </li>
                             <li>
                                 <span>HappyHoodieFriends</span>
-                                <span><span class="position">engineer | </span><span class="dates">Jan 2009 - Jun 2013</span></span>
+                                <span
+                                    ><span class="position">engineer | </span
+                                    ><span class="dates">Jan 2009 - Jun 2013</span></span
+                                >
                             </li>
                         </ul>
                     </div>
@@ -157,7 +181,10 @@
                     <div class="bg"></div>
                     <div class="content">
                         <h1>mission</h1>
-                        <p>To apply engineering toward solving essential human problems in a rapidly changing world.</p>
+                        <p>
+                            To apply engineering toward solving essential human problems in a
+                            rapidly changing world.
+                        </p>
                         <h3>Technologies</h3>
                         <ul class="main">
                             <li>
@@ -196,7 +223,9 @@
                 <li @click="showResume = !showResume">{{ showResume ? 'on' : 'off' }} :resume</li>
                 <li>{{ state.scene }} :scene</li>
                 <li class="music">
-                    <div @click="onToggleSound">{{ state.audio === AL_STATE.running ? 'on' : 'off' }} :sound</div>
+                    <div @click="onToggleSound">
+                        {{ state.audio === AL_STATE.running ? 'on' : 'off' }} :sound
+                    </div>
                 </li>
                 <li class="credits">
                     music by
@@ -224,6 +253,20 @@ import { MSGS } from '../consts/msgs';
 
 import Arrow from '@/components/arrow.vue';
 
+const ALLOWED_KEYS = [
+    'Enter',
+    'ArrowRight',
+    'ArrowLeft',
+    'ArrowUp',
+    'ArrowDown',
+    ' ', // spacebar
+    'Escape',
+    'q',
+    'w',
+    'a',
+    's',
+    'd',
+];
 const NAV_KEYS = {
     forward: ['Enter', 'ArrowRight', 'ArrowUp', ' ', 'w', 'd'],
     backward: ['ArrowLeft', 'ArrowDown', 'a', 's'],
@@ -438,9 +481,8 @@ function init() {
         sound.play();
     });
 
-    function unlockAudio(e) {
-        const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '];
-        if (e?.key && !keys.includes(e?.key)) {
+    function initAction(e) {
+        if (e?.key && !ALLOWED_KEYS.includes(e?.key)) {
             return;
         }
 
@@ -448,27 +490,25 @@ function init() {
             audioListener?.context.resume();
         }
 
-        document.removeEventListener('keydown', unlockAudio);
-    }
-
-    function initAction() {
-        if (audioListener?.context?.state === 'suspended') {
-            audioListener?.context.resume();
+        // if pointerdown change scene
+        if (!e?.key) {
+            state.scene = SCENES.moon;
         }
 
-        state.scene = SCENES.moon;
+        document.removeEventListener('pointerdown', initAction);
         document.removeEventListener('keydown', initAction);
     }
 
     document.addEventListener('pointerdown', initAction, eventOpts);
-    document.addEventListener('keydown', unlockAudio, eventOpts);
+    document.addEventListener('keydown', initAction, eventOpts);
     document.addEventListener(
         'keydown',
         (e) => {
-            const ALLOWED_KEYS = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'Escape', 'q', 'a', 'd', 's', 'w'];
-            if (ALLOWED_KEYS.includes(e.key)) {
-                toggleState(e.key);
+            if (!ALLOWED_KEYS.includes(e.key)) {
+                return;
             }
+
+            toggleState(e.key);
         },
         eventOpts,
     );
