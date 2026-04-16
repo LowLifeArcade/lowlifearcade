@@ -566,19 +566,18 @@ function init() {
             if (deltaX > 0) {
                 swipe = DIRS.right;
                 console.log('Swiped Right');
-                forward = true;
+                forward = false;
             } else {
                 swipe = DIRS.left;
-                forward = false;
+                forward = true;
                 console.log('Swiped Left');
             }
         } else {
             if (deltaY > 0) {
                 swipe = DIRS.down;
-                forward = false;
                 console.log('Swiped Down');
             } else {
-                forward = true;
+                // forward = true;
                 swipe = DIRS.up;
                 console.log('Swiped Up');
             }
