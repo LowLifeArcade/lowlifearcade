@@ -3,7 +3,7 @@ export const MSGS = {
         ['scanning moon surface', 1000],
         ['Anomalous surface findings', 200],
         ['......... lsc arp', 100, 10],
-        ['Collecting', 2000],
+        ['Collecting', 100],
         ['...', 100],
         ['......... atr', 0, 200],
         ['...', 20],

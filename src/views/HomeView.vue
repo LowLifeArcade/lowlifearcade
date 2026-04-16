@@ -6,7 +6,7 @@
             class="globe-canvas"
         />
 
-        <div class="label">
+        <div class="terminal-display">
             <ul>
                 <li
                     v-for="(msg, i) in displayMsgs"
@@ -17,7 +17,7 @@
                     </span>
                     <span
                         v-if="i + 1 === displayMsgs.length"
-                        class="dot"
+                        class="cursor"
                     />
                 </li>
             </ul>
@@ -54,28 +54,36 @@
                         <h1>work history</h1>
                         <ul class="main resume">
                             <li>
-                                <span>LowLifeArcade Inc</span> <span>engineer | <span class="dates">Mar 2026 - Current&nbsp;</span></span>
+                                <span>LowLifeArcade Inc</span>
+                                <span><span class="position">engineer | </span><span class="dates">Mar 2026 - Current&nbsp;</span></span>
                             </li>
                             <li>
-                                <span>Discogs Inc</span> <span>engineer | <span class="dates">Nov 2025 - Mar 2026</span></span>
+                                <span>Discogs Inc</span>
+                                <span><span class="position">engineer | </span><span class="dates">Nov 2025 - Mar 2026</span></span>
                             </li>
                             <li>
-                                <span>PeopleFinders Inc</span> <span>engineer | <span class="dates">Apr 2023 - Nov 2025</span></span>
+                                <span>PeopleFinders Inc</span>
+                                <span><span class="position">engineer | </span><span class="dates">Apr 2023 - Nov 2025</span></span>
                             </li>
                             <li>
-                                <span>MHF Foundation</span><span>engineer | <span class="dates">Jun 2022 - Mar 2023</span></span>
+                                <span>MHF Foundation</span
+                                ><span><span class="position">engineer | </span><span class="dates">Jun 2022 - Mar 2023</span></span>
                             </li>
                             <li>
-                                <span>IT Contractor</span> <span>engineer | <span class="dates">Mar 2020 - Jun 2022</span></span>
+                                <span>IT Contractor</span>
+                                <span><span class="position">engineer | </span><span class="dates">Mar 2020 - Jun 2022</span></span>
                             </li>
                             <li>
-                                <span>Filmmaker</span> <span>cinematographer | <span class="dates">Jan 2015 - Dec 2020</span></span>
+                                <span>Filmmaker</span>
+                                <span><span class="position">cinematographer | </span><span class="dates">Jan 2015 - Dec 2020</span></span>
                             </li>
                             <li>
-                                <span>LootCrate</span> <span>data warehouse | <span class="dates">Aug 2013 - Jan 2015</span></span>
+                                <span>LootCrate</span>
+                                <span> <span class="position">data warehouse | </span><span class="dates">Aug 2013 - Jan 2015</span></span>
                             </li>
                             <li>
-                                <span>HappyHoodieFriends</span> <span>engineer | <span class="dates">Jan 2009 - Jun 2013</span></span>
+                                <span>HappyHoodieFriends</span>
+                                <span><span class="position">engineer | </span><span class="dates">Jan 2009 - Jun 2013</span></span>
                             </li>
                         </ul>
                     </div>
@@ -805,7 +813,7 @@ onBeforeUnmount(() => {
     display: block;
 }
 
-.label {
+.terminal-display {
     position: absolute;
     height: 300px;
     overflow: hidden;
@@ -819,7 +827,7 @@ onBeforeUnmount(() => {
     gap: 0.5rem;
     user-select: none;
 
-    .dot {
+    .cursor {
         width: 6px;
         height: 6px;
         border-radius: 50%;
@@ -831,9 +839,13 @@ onBeforeUnmount(() => {
     }
 
     .msg {
-        /* white-space: pre-wrap; */
         display: flex;
         align-items: center;
+    }
+
+    ul {
+        margin: unset;
+        padding: unset;
     }
 }
 
@@ -880,6 +892,10 @@ onBeforeUnmount(() => {
             justify-content: space-between;
             align-items: center;
         }
+    }
+
+    @media (width < 500px) {
+        display: none;
     }
 }
 
@@ -964,17 +980,23 @@ onBeforeUnmount(() => {
 
     &:has(.moon) {
         margin-left: 20rem;
-        /* right: 20%; */
         max-width: 380px;
     }
 
     &:has(.earth) {
         margin-left: 10rem;
         top: 16%;
-        /* right: 24%; */
 
         .earth {
             max-width: 450px;
+        }
+    }
+
+    @media (width < 500px) {
+        margin: unset !important;
+
+        .position {
+            display: none;
         }
     }
 }
