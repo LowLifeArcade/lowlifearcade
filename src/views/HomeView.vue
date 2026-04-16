@@ -53,14 +53,30 @@
                     <div class="content">
                         <h1>work history</h1>
                         <ul class="main resume">
-                            <li><span>LowLifeArcade Inc - engineer</span> <span>Mar 2026 - Current&nbsp;</span></li>
-                            <li><span>Discogs Inc - engineer</span> <span>Nov 2025 - Mar 2026</span></li>
-                            <li><span>PeopleFinders Inc - engineer</span> <span>Apr 2023 - Nov 2025</span></li>
-                            <li><span>MHF Foundation - engineer</span><span>Jun 2022 - Mar 2023</span></li>
-                            <li><span>IT Contractor - engineer</span> <span>Mar 2020 - Jun 2022</span></li>
-                            <li><span>Filmmaker - cinematographer</span> <span>Jan 2015 - Dec 2020</span></li>
-                            <li><span>LootCrate - data warehouse</span> <span>Aug 2013 - Jan 2015</span></li>
-                            <li><span>HappyHoodieFriends - engineer</span> <span>Jan 2009 - Jun 2013</span></li>
+                            <li>
+                                <span>LowLifeArcade Inc</span> <span>engineer | <span class="dates">Mar 2026 - Current&nbsp;</span></span>
+                            </li>
+                            <li>
+                                <span>Discogs Inc</span> <span>engineer | <span class="dates">Nov 2025 - Mar 2026</span></span>
+                            </li>
+                            <li>
+                                <span>PeopleFinders Inc</span> <span>engineer | <span class="dates">Apr 2023 - Nov 2025</span></span>
+                            </li>
+                            <li>
+                                <span>MHF Foundation</span><span>engineer | <span class="dates">Jun 2022 - Mar 2023</span></span>
+                            </li>
+                            <li>
+                                <span>IT Contractor</span> <span>engineer | <span class="dates">Mar 2020 - Jun 2022</span></span>
+                            </li>
+                            <li>
+                                <span>Filmmaker</span> <span>cinematographer | <span class="dates">Jan 2015 - Dec 2020</span></span>
+                            </li>
+                            <li>
+                                <span>LootCrate</span> <span>data warehouse | <span class="dates">Aug 2013 - Jan 2015</span></span>
+                            </li>
+                            <li>
+                                <span>HappyHoodieFriends</span> <span>engineer | <span class="dates">Jan 2009 - Jun 2013</span></span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -902,6 +918,10 @@ onBeforeUnmount(() => {
 
                     span {
                         white-space: nowrap;
+                    }
+
+                    .dates {
+                        /* margin-left: .5rem; */
                     }
                 }
             }
