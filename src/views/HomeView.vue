@@ -59,6 +59,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { MSGS } from '../consts/msgs'
 
 const NAV_KEYS = {
     forward: ['Enter', 'ArrowRight', 'ArrowUp', ' '],
@@ -87,6 +88,10 @@ const state = reactive({
     game: GAME_STATE.loading,
     audio: AL_STATE.running,
 });
+const switchable = ref(false);
+const game = reactive({
+    controls: null,
+});
 const loader = new GLTFLoader();
 const loadingBar = ref(0);
 const ctrl = new AbortController();
@@ -95,61 +100,7 @@ const hudActive = computed(() => state.scene !== SCENES.space);
 
 let id;
 const displayMsgs = ref([]);
-const MSGS = {
-    moon: [
-        ['scanning moon surface', 1000],
-        ['Anomalous surface findings', 200],
-        ['Collecting', 2000],
-        ['...', 100],
-        ['...', 0],
-        ['...', 200],
-        ['...', 10],
-        ['...', 200],
-        ['...', 20],
-        ['...', 20],
-        ['...', 300],
-        ['checksum', 2000],
-        ['Sample collected', 100],
-    ],
-    sun: [
-        ['measuring flare levels', 1000],
-        ['...', 200],
-        ['...', 10],
-        ['...', 200],
-        ['...', 20],
-        ['...', 20],
-        ['checksum', 1000],
-        ['barsum', 300],
-        ['...', 200],
-        ['...', 20],
-        ['...', 20],
-        ['checksum', 1000],
-        ['800 Wm−2', 1000],
-    ],
-    earth: [
-        ['measuring earth shine', 1000],
-        ['...', 200],
-        ['...', 10],
-        ['checksum', 1000],
-        ['...', 200],
-        ['...', 20],
-        ['...', 20],
-        ['checksum', 1000],
-        ['215um', 1000],
-    ],
-    space: [
-        ['scafolding', 1000],
-        ['...', 0],
-        ['...', 300],
-        ['...', 30],
-        ['checksum', 1000],
-        ['e.g.r.o.', 100],
-        ['...', 200],
-        ['...', 500],
-        ['checksum', 500],
-        ['Low life arcade active', 20],
-    ],
-};
+
 let int;
 watch(
     () => state.scene,
@@ -162,7 +113,7 @@ watch(
             clearTimeout(id);
         }
 
-        for await (const [msg, time] of MSGS[state.scene]) {
+        for await (const [msg, time, wordSpeed] of MSGS[state.scene]) {
             displayMsgs.value.push('');
 
             await new Promise((res) => (id = setTimeout(res, time)));
@@ -180,7 +131,7 @@ watch(
                         clearInterval(int);
                         res();
                     }
-                }, 30);
+                }, wordSpeed || 30);
             });
         }
     },
@@ -200,11 +151,20 @@ let renderer = new THREE.WebGLRenderer(),
     spaceship,
     earth,
     moving = true,
-    switchable = true,
-    controls,
     orbitAngle = 2,
     orbitRadius = 2.5,
     orbitSpeed = 0.03;
+
+watch(
+    switchable,
+    (s) => {
+        if (game.controls) {
+            game.controls.enabled = s;
+            game.controls.update();
+        }
+    },
+    { immediate: true, deep: true },
+);
 
 function onToggleSound() {
     if (audioListener?.context?.state === 'suspended') {
@@ -220,14 +180,14 @@ function toggleState(key) {
     if (NAV_KEYS.exit.includes(key) && audioListener?.context?.state === 'running') {
         state.scene = SCENES.space;
         audioListener?.context.suspend();
+        moving = true;
+        switchable.value = false;
         return;
     }
 
-    if (!switchable && key !== 'Enter') {
+    if (!game.controls.enabled && key !== 'Enter') {
         return;
     }
-
-    controls.enabled = false;
 
     if (state.audio === AL_STATE.running && audioListener?.context?.state === 'suspended') {
         audioListener?.context?.resume();
@@ -241,7 +201,7 @@ function toggleState(key) {
         }
 
         moving = true;
-        switchable = false;
+        switchable.value = false;
     } else if (state.scene === SCENES.sun) {
         if (NAV_KEYS.forward.includes(key)) {
             state.scene = SCENES.earth;
@@ -250,7 +210,7 @@ function toggleState(key) {
         }
 
         moving = true;
-        switchable = false;
+        switchable.value = false;
     } else if (state.scene === SCENES.earth) {
         if (NAV_KEYS.forward.includes(key)) {
             state.scene = SCENES.moon;
@@ -259,11 +219,11 @@ function toggleState(key) {
         }
 
         moving = true;
-        switchable = false;
+        switchable.value = false;
     } else if (state.scene === SCENES.space) {
         state.scene = SCENES.moon;
         moving = true;
-        switchable = false;
+        switchable.value = false;
     }
 }
 
@@ -345,20 +305,13 @@ function init() {
     const textureURL = './moon.jpg';
     const displacementURL = './moon-2.jpg';
 
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
+    game.controls = new OrbitControls(camera, renderer.domElement);
+    game.controls.enableDamping = true;
+    game.controls.dampingFactor = 0.08;
 
-    // controls.addEventListener('change', () => {
+    // game.controls.addEventListener('change', () => {
     //     console.log(camera.position);
     // });
-
-    // controls.enablePan = false;
-
-    // renderer.setSize(window.innerWidth, window.innerHeight);
-    // document.body.appendChild(renderer.domElement);
-
-    // const geometry = new THREE.SphereGeometry(2, 60, 60);
 
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(textureURL);
@@ -404,8 +357,6 @@ function init() {
 
     earth = new THREE.Mesh(earthGeo, earthMesh);
     earth.position.x = -50.18;
-    // earth.position.z = 20.18;
-    // earth.position.y = 10
     scene.add(earth);
 
     composer = new EffectComposer(renderer);
@@ -435,7 +386,7 @@ function init() {
     const starCount = 3800;
     const positions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 170;
+        positions[i] = (Math.random() - 0.5) * 200;
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -503,24 +454,6 @@ function onResize() {
 }
 
 const currentLookAt = new THREE.Vector3();
-const targets = {
-    sun: {
-        camera: new THREE.Vector3(1.614101934079007, 0.05827171062183323, 1.63277437998612),
-        loc: new THREE.Vector3(1.2, 0, 0),
-    },
-    earth: {
-        camera: new THREE.Vector3(1.187330832077383, 1.3996101001244262, 1.9398882467499785),
-        loc: new THREE.Vector3(-1.2, 1, 1),
-    },
-    moon: {
-        camera: new THREE.Vector3(0.02705811711985545, 0.20869967182489138, 4.284386682929132),
-        loc: new THREE.Vector3(0, 0, 0),
-    },
-    space: {
-        camera: new THREE.Vector3(0, 0, 10),
-        loc: new THREE.Vector3(0, 0, 0),
-    },
-};
 
 function handleCameraSwitch(target = { loc: '', camera: '' }) {
     if (!moving) {
@@ -536,14 +469,12 @@ function handleCameraSwitch(target = { loc: '', camera: '' }) {
     const positionDone = camera.position.distanceTo(target.camera) < 0.001;
     const lookDone = currentLookAt.distanceTo(target.loc) < 0.001;
 
-    if (positionSwitchable && lookSwitchable) {
-        switchable = true;
-    }
+    switchable.value = lookSwitchable;
 
     if (positionDone && lookDone) {
+        game.controls.target.copy(target.loc);
+        game.controls.update();
         camera.position.copy(target.camera);
-        controls.target.copy(target.loc);
-        controls.update();
         moving = false;
     }
 }
@@ -592,18 +523,31 @@ function handleSpaceshipSwitch(scene) {
     }
 }
 
+const TARGETS = {
+    sun: {
+        camera: new THREE.Vector3(1.614101934079007, 0.05827171062183323, 1.63277437998612),
+        loc: new THREE.Vector3(1.2, 0, 0),
+    },
+    earth: {
+        camera: new THREE.Vector3(1.187330832077383, 1.3996101001244262, 1.9398882467499785),
+        loc: new THREE.Vector3(-1.2, 1, 1),
+    },
+    moon: {
+        camera: new THREE.Vector3(0.02705811711985545, 0.20869967182489138, 4.284386682929132),
+        loc: new THREE.Vector3(0, 0, 0),
+    },
+    space: {
+        camera: new THREE.Vector3(0, 0, 10),
+        loc: new THREE.Vector3(0, 0, 0),
+    },
+};
+
 function animate() {
     animationId = requestAnimationFrame(animate);
-    controls.update();
+    game.controls.update();
 
-    handleCameraSwitch(targets[state.scene]);
+    handleCameraSwitch(TARGETS[state.scene]);
     handleSpaceshipSwitch(state.scene);
-
-    if (switchable) {
-        controls.enabled = true;
-    } else {
-        controls.enabled = false;
-    }
 
     globe.rotation.y += 0.0025;
     earth.rotation.y += 0.0012;
@@ -668,13 +612,15 @@ onBeforeUnmount(() => {
 
 .label {
     position: absolute;
+    height: 300px;
+    overflow: hidden;
     bottom: 2rem;
     left: 2rem;
     font-size: 0.7rem;
     letter-spacing: 0.25em;
     color: rgba(0, 200, 255, 0.5);
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 0.5rem;
     user-select: none;
 
