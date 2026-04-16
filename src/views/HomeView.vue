@@ -440,11 +440,19 @@ function init() {
             audioListener?.context.resume();
         }
 
-        // document.removeEventListener('pointerdown', unlockAudio);
         document.removeEventListener('keydown', unlockAudio);
     }
 
-    // document.addEventListener('pointerdown', unlockAudio, eventOpts);
+    function initAction() {
+        if (audioListener?.context?.state === 'suspended') {
+            audioListener?.context.resume();
+        }
+
+        state.scene = SCENES.moon;
+        document.removeEventListener('keydown', initAction);
+    }
+
+    document.addEventListener('pointerdown', initAction, eventOpts);
     document.addEventListener('keydown', unlockAudio, eventOpts);
     document.addEventListener(
         'keydown',
