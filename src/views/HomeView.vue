@@ -955,13 +955,13 @@ onBeforeUnmount(() => {
     }
 
     &:has(.moon) {
-        padding-left: 20rem;
+        margin-left: 20rem;
         /* right: 20%; */
         max-width: 380px;
     }
 
     &:has(.earth) {
-        padding-left: 10rem;
+        margin-left: 10rem;
         top: 16%;
         /* right: 24%; */
 
