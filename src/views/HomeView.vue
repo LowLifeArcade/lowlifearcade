@@ -22,28 +22,167 @@
                 </li>
             </ul>
         </div>
-        <div class="middle">
-            <span v-if="hudActive">Nav: use arrow keys</span>
+        <div
+            v-if="hudActive"
+            class="middle"
+        >
+            <p>
+                <span>wasd or&nbsp;<Arrow />:</span> <span>navigation</span>
+            </p>
+            <p><span>m:</span> <span>toggle sound</span></p>
+            <p><span>r:</span> <span>toggle resume</span></p>
         </div>
         <div class="onscreen">
-            <span v-if="!hudActive">Press Enter</span>
+            <Transition
+                name="fade"
+                mode="out-in"
+            >
+                <div
+                    v-if="!hudActive"
+                    key="one"
+                    class="start"
+                >
+                    Press Enter
+                </div>
+                <div
+                    v-else-if="isScene(SCENES.moon)"
+                    key="two"
+                    class="moon"
+                >
+                    <div class="bg"></div>
+                    <div class="content">
+                        <h1>work history</h1>
+                        <ul class="main resume">
+                            <li><span>LowLifeArcade Inc - engineer</span> <span>Mar 2026 - Current&nbsp;</span></li>
+                            <li><span>Discogs Inc - engineer</span> <span>Nov 2025 - Mar 2026</span></li>
+                            <li><span>PeopleFinders Inc - engineer</span> <span>Apr 2023 - Nov 2025</span></li>
+                            <li><span>MHF Foundation - engineer</span><span>Jun 2022 - Mar 2023</span></li>
+                            <li><span>IT Contractor - engineer</span> <span>Mar 2020 - Jun 2022</span></li>
+                            <li><span>Filmmaker - cinematographer</span> <span>Jan 2015 - Dec 2020</span></li>
+                            <li><span>LootCrate - data warehouse</span> <span>Aug 2013 - Jan 2015</span></li>
+                            <li><span>HappyHoodieFriends - engineer</span> <span>Jan 2009 - Jun 2013</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div
+                    v-else-if="isScene(SCENES.sun)"
+                    key="three"
+                    class="sun"
+                >
+                    <div class="bg"></div>
+                    <div class="content">
+                        <h1>showcase</h1>
+                        <ul class="main">
+                            <li>
+                                <a
+                                    href="https://census.moonbeam.workers.dev/"
+                                    target="_blank"
+                                    >Moonbeam API
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">API serving large US census datasets</p>
+                                <ul>
+                                    <li>Custom data graph system</li>
+                                    <li>~1m+ daily requests</li>
+                                    <li>~5ms queries</li>
+                                    <li>~90ms wall time</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://www.findaneighborhood.com/"
+                                    target="_blank"
+                                    >FindANeighborhood
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">Web app serving MLS real estate data</p>
+                                <ul>
+                                    <li>Six figure revenue in first year</li>
+                                    <li>Custom production libraries</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://www.phonebooks.com/"
+                                    target="_blank"
+                                    >Phonebooks
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">Web app serving large business datasets</p>
+                                <ul>
+                                    <li>Millions of business listenings</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div
+                    v-else-if="isScene(SCENES.earth)"
+                    key="four"
+                    class="earth"
+                >
+                    <div class="bg"></div>
+                    <div class="content">
+                        <h1>mission</h1>
+                        <p>
+                            To engineer cutting edge solutions for emerging requirements in the 21st century, particularly in the realm of
+                            science and fundamental human needs.
+                        </p>
+                        <h3>Technologies</h3>
+                        <ul class="main">
+                            <li>
+                                Cloud
+                                <ul>
+                                    <li>Cloudflare: Workers / Durable Objects</li>
+                                    <li>AWS: RDS / EC2 / S3</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Web
+                                <ul>
+                                    <li>Node / Deno / Bun</li>
+                                    <li>Vue / Nuxt</li>
+                                    <li>React / Next / TanStack</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Data
+                                <ul>
+                                    <li>ElasticSearch / ELK Stack</li>
+                                    <li>SQL / NoSQL</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <div
             v-if="hudActive"
             class="hud"
         >
             <ul>
+                <li @click="showResume = !showResume">{{ showResume ? 'on' : 'off' }} :resume</li>
                 <li>{{ state.scene }} :scene</li>
                 <li class="music">
                     <div @click="onToggleSound">{{ state.audio === AL_STATE.running ? 'on' : 'off' }} :sound</div>
-                    <div class="credits">
-                        music by
-                        <a
-                            href="https://pixabay.com/users/idoberg-34953295/"
-                            target="_blank"
-                            >IdoBerg</a
-                        >
-                    </div>
+                </li>
+                <li class="credits">
+                    music by
+                    <a
+                        href="https://pixabay.com/users/idoberg-34953295/"
+                        target="_blank"
+                        >IdoBerg</a
+                    >
                 </li>
             </ul>
         </div>
@@ -59,12 +198,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { MSGS } from '../consts/msgs'
+import { MSGS } from '../consts/msgs';
+
+import Arrow from '@/components/arrow.vue';
 
 const NAV_KEYS = {
-    forward: ['Enter', 'ArrowRight', 'ArrowUp', ' '],
-    backward: ['ArrowLeft', 'ArrowDown'],
-    exit: ['Escape'],
+    forward: ['Enter', 'ArrowRight', 'ArrowUp', ' ', 'w', 'd'],
+    backward: ['ArrowLeft', 'ArrowDown', 'a', 's'],
+    exit: ['Escape', 'q'],
 };
 const SCENES = {
     sun: 'sun',
@@ -97,6 +238,8 @@ const loadingBar = ref(0);
 const ctrl = new AbortController();
 const eventOpts = { signal: ctrl.signal };
 const hudActive = computed(() => state.scene !== SCENES.space);
+const showResume = ref(true);
+const isScene = (scene) => showResume.value && hudActive.value && state.scene === scene;
 
 let id;
 const displayMsgs = ref([]);
@@ -176,12 +319,30 @@ function onToggleSound() {
     }
 }
 
+document.addEventListener(
+    'keydown',
+    (e) => {
+        if (['m'].includes(e.key)) {
+            onToggleSound();
+        }
+
+        if (['r'].includes(e.key)) {
+            showResume.value = !showResume.value;
+        }
+    },
+    eventOpts,
+);
+
 function toggleState(key) {
-    if (NAV_KEYS.exit.includes(key) && audioListener?.context?.state === 'running') {
+    if (NAV_KEYS.exit.includes(key)) {
         state.scene = SCENES.space;
-        audioListener?.context.suspend();
         moving = true;
         switchable.value = false;
+
+        if (audioListener?.context?.state === 'running') {
+            audioListener?.context.suspend();
+        }
+
         return;
     }
 
@@ -193,28 +354,31 @@ function toggleState(key) {
         audioListener?.context?.resume();
     }
 
+    const forward = NAV_KEYS.forward.includes(key);
+    const back = NAV_KEYS.backward.includes(key);
+
     if (state.scene === SCENES.moon) {
-        if (NAV_KEYS.forward.includes(key)) {
+        if (forward) {
             state.scene = SCENES.sun;
-        } else {
+        } else if (back) {
             state.scene = SCENES.earth;
         }
 
         moving = true;
         switchable.value = false;
     } else if (state.scene === SCENES.sun) {
-        if (NAV_KEYS.forward.includes(key)) {
+        if (forward) {
             state.scene = SCENES.earth;
-        } else {
+        } else if (back) {
             state.scene = SCENES.moon;
         }
 
         moving = true;
         switchable.value = false;
     } else if (state.scene === SCENES.earth) {
-        if (NAV_KEYS.forward.includes(key)) {
+        if (forward) {
             state.scene = SCENES.moon;
-        } else {
+        } else if (back) {
             state.scene = SCENES.sun;
         }
 
@@ -271,8 +435,8 @@ function init() {
     document.addEventListener(
         'keydown',
         (e) => {
-            const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'Escape'];
-            if (keys.includes(e.key)) {
+            const ALLOWED_KEYS = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'Escape', 'q', 'a', 'd', 's', 'w'];
+            if (ALLOWED_KEYS.includes(e.key)) {
                 toggleState(e.key);
             }
         },
@@ -582,6 +746,16 @@ onBeforeUnmount(() => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 1s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .globe-wrapper {
     font-family: 'Share Tech Mono', monospace;
     position: relative;
@@ -643,7 +817,7 @@ onBeforeUnmount(() => {
 }
 
 .hud {
-    font-size: 1.2rem;
+    font-size: 1rem;
     position: absolute;
     bottom: 2rem;
     right: 2rem;
@@ -660,23 +834,121 @@ onBeforeUnmount(() => {
 
     .music {
         padding: unset;
+    }
 
-        .credits {
-            font-size: 0.8rem;
-        }
+    .credits {
+        margin-top: 0.4rem;
+        font-size: 0.8rem;
     }
 }
 
 .middle {
     position: absolute;
     bottom: 2rem;
-    color: white;
+    /* color: white; */
+    color: rgb(74, 119, 139);
+    min-width: 230px;
+
+    p {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        span {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
 }
 
 .onscreen {
     position: absolute;
-    color: white;
+    color: #fefefe;
     font-size: 1rem;
+    padding: 2rem;
+
+    .bg {
+        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.695) 56%, transparent 92%);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 1;
+    }
+
+    .content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        h1 {
+            white-space: nowrap;
+        }
+
+        ul.main {
+            list-style: none;
+            margin: unset;
+            padding: unset;
+            gap: 1rem;
+            display: grid;
+
+            &.resume {
+                li {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 2rem;
+
+                    span {
+                        white-space: nowrap;
+                    }
+                }
+            }
+        }
+
+        a {
+            font-size: 1.2rem;
+            display: inline-block;
+            margin-bottom: .6rem;
+        }
+
+        .desc {
+            /* margin-block: 0.75rem; */
+            /* font-size: .9rem; */
+            padding: .5rem;
+        }
+    }
+
+    .start {
+        font-size: 3rem;
+    }
+
+    &:has(.sun) {
+        right: 10%;
+        display: flex;
+        justify-content: flex-end;
+
+        .sun {
+            max-width: 350px;
+        }
+    }
+
+    &:has(.moon) {
+        right: 20%;
+        max-width: 380px;
+    }
+
+    &:has(.earth) {
+        top: 16%;
+        right: 24%;
+
+        .earth {
+            max-width: 450px;
+        }
+    }
 }
 
 @keyframes pulse {
