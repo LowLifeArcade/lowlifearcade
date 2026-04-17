@@ -906,7 +906,7 @@ onBeforeUnmount(() => {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 1s ease;
+    transition: opacity 1s ease-in-out;
 }
 
 .fade-enter-from,
@@ -1021,6 +1021,7 @@ onBeforeUnmount(() => {
 .onscreen {
     position: absolute;
     color: #fefefe;
+    color: #dddddd;
     font-size: 1rem;
     padding: 2rem;
 
