@@ -666,12 +666,12 @@ function init() {
     const earthDisplacementMap = textureLoader.load('./earth_terrain.jpg');
     const earthGeo = new THREE.SphereGeometry(3, 64, 64);
     const earthMesh = new THREE.MeshPhongMaterial({
-        color: 0xbbbfff,
+        color: 0xcccfff,
         map: earthTexture,
         bumpMap: earthDisplacementMap,
         emissive: 1,
         bumpScale: 1.1,
-        emissive: 0x000339,
+        emissive: 0x000333,
         emissiveIntensity: 0.1,
         shininess: 20,
         // opacity: 0.95,
