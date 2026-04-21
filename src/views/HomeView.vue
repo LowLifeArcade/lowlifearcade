@@ -281,8 +281,8 @@ const ALLOWED_KEYS = [
 ];
 const NAV_KEYS = {
     forward: ['Enter', 'ArrowRight', 'ArrowUp', ' ', 'w', 'd'],
-    backward: ['ArrowLeft', 'ArrowDown', 'a', 's'],
-    exit: ['Escape', 'q'],
+    backward: ['ArrowLeft', 'a'],
+    exit: ['Escape', 'q', 's', 'ArrowDown'],
 };
 const SCENES = {
     sun: 'sun',
