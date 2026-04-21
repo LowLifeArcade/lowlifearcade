@@ -25,7 +25,7 @@
             v-if="hudActive"
             class="middle"
         >
-            <h3>Controls</h3>
+            <h3>controls</h3>
             <p>
                 <span>wasd or&nbsp;<Arrow />:</span> <span>navigation</span>
             </p>
@@ -1026,8 +1026,15 @@ onBeforeUnmount(() => {
     /* color: white; */
     color: rgb(74, 119, 139);
     min-width: 230px;
+    border: 1px solid;
+    padding: 1rem;
+    border-radius: 0.3rem;
 
     h3 {
+        position: absolute;
+        top: -.75rem;
+        background: black;
+        padding-inline: .5rem;
         text-align: center;
         margin-bottom: 0.3rem;
     }
