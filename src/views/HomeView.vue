@@ -439,7 +439,7 @@ function toggleState(key) {
 }
 
 const downloadFile = async () => {
-    const response = await fetch('public/sonny_brown_resume.docx');
+    const response = await fetch('/sonny_brown_resume.docx');
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
