@@ -25,6 +25,7 @@
             v-if="hudActive"
             class="middle"
         >
+            <h3>Controls</h3>
             <p>
                 <span>wasd or&nbsp;<Arrow />:</span> <span>navigation</span>
             </p>
@@ -50,7 +51,17 @@
                 >
                     <div class="bg"></div>
                     <div class="content">
-                        <h1>work history</h1>
+                        <h1>
+                            work history
+                            <span>
+                                <a
+                                    href="public/sonny_brown_resume.docx"
+                                    download="sonnybrown_resume"
+                                >
+                                    resume <Download />
+                                </a>
+                            </span>
+                        </h1>
                         <ul class="main resume">
                             <li>
                                 <span>LowLifeArcade Inc</span>
@@ -251,6 +262,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { MSGS } from '../consts/msgs';
 
 import Arrow from '@/components/arrow.vue';
+import Download from '@/components/download.vue';
 
 const ALLOWED_KEYS = [
     'Enter',
@@ -1001,10 +1013,16 @@ onBeforeUnmount(() => {
     color: rgb(74, 119, 139);
     min-width: 230px;
 
+    h3 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
     p {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        line-height: 1.5rem;
 
         span {
             display: flex;
@@ -1100,7 +1118,20 @@ onBeforeUnmount(() => {
 
     &:has(.moon) {
         margin-left: 20rem;
-        max-width: 380px;
+        /* max-width: 380px; */
+
+        h1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            a {
+                display: flex;
+                align-items: center;
+                gap: .3rem;
+                margin: unset;
+            }
+        }
     }
 
     &:has(.earth) {
