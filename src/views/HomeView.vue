@@ -56,7 +56,7 @@
                             <span>
                                 <a
                                     href="public/sonny_brown_resume.docx"
-                                    download="sonnybrown_resume"
+                                    download="sonnybrown_resume.docx"
                                 >
                                     resume <Download />
                                 </a>
