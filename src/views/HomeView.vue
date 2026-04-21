@@ -56,7 +56,7 @@
                             <span>
                                 <a
                                     href="public/sonny_brown_resume.docx"
-                                    download="sonnybrown_resume.docx"
+                                    download="sonny_brown_resume.docx"
                                 >
                                     resume <Download />
                                 </a>
@@ -1015,7 +1015,7 @@ onBeforeUnmount(() => {
 
     h3 {
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: .3rem;
     }
 
     p {
