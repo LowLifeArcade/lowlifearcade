@@ -55,8 +55,9 @@
                             work history
                             <span>
                                 <a
-                                    href="public/sonny_brown_resume.docx"
-                                    download
+                                    class="resume"
+                                    title="resume"
+                                    @click="downloadFile"
                                 >
                                     resume <Download />
                                 </a>
@@ -436,6 +437,19 @@ function toggleState(key) {
 
     handleDirection({ forward, back });
 }
+
+const downloadFile = async () => {
+    const response = await fetch('public/sonny_brown_resume.docx');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'sonny_brown_resume.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+};
 
 function handleDirection({ forward, back }) {
     if (state.scene === SCENES.moon) {
@@ -1015,7 +1029,7 @@ onBeforeUnmount(() => {
 
     h3 {
         text-align: center;
-        margin-bottom: .3rem;
+        margin-bottom: 0.3rem;
     }
 
     p {
@@ -1063,6 +1077,10 @@ onBeforeUnmount(() => {
 
         h1 {
             white-space: nowrap;
+        }
+
+        .resume {
+            cursor: pointer;
         }
 
         ul.main {
@@ -1128,7 +1146,7 @@ onBeforeUnmount(() => {
             a {
                 display: flex;
                 align-items: center;
-                gap: .3rem;
+                gap: 0.3rem;
                 margin: unset;
             }
         }
