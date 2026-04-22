@@ -439,12 +439,12 @@ function toggleState(key) {
 }
 
 const downloadFile = async () => {
-    const response = await fetch('/sonny_brown_resume.docx');
+    const response = await fetch('/sonny_brown_resume_2026.docx');
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'sonny_brown_resume.docx';
+    link.download = 'sonny_brown_resume_2026.docx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
