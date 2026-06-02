@@ -512,6 +512,8 @@ function init() {
     });
 
     function initAction(e) {
+        moving = true;
+        
         if (e?.key && !ALLOWED_KEYS.includes(e?.key)) {
             return;
         }
