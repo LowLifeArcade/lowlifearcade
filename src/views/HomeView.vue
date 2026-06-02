@@ -27,7 +27,7 @@
         >
             <h3>controls</h3>
             <p>
-                <span>wasd or&nbsp;<Arrow />:</span> <span>navigation</span>
+                <span><Arrow />:</span> <span>navigation</span>
             </p>
             <p><span>m:</span> <span>toggle sound</span></p>
             <p><span>r:</span> <span>toggle resume</span></p>
@@ -55,7 +55,7 @@
                             work history
                             <span>
                                 <a
-                                    class="resume"
+                                    class="resume-dl"
                                     title="resume"
                                     @click="downloadFile"
                                 >
@@ -193,32 +193,33 @@
                     <div class="content">
                         <h1>mission</h1>
                         <p>
-                            To apply engineering toward solving essential human problems in a
-                            rapidly changing world.
+                            To apply engineering, guided by Catholic teaching, to solve essential human problems in a rapidly changing world.
                         </p>
                         <h3>Technologies</h3>
                         <ul class="main">
                             <li>
                                 Cloud
                                 <ul>
-                                    <li>Cloudflare: Workers / Durable Objects</li>
-                                    <li>AWS: RDS / EC2 / S3</li>
+                                    <li>Cloudflare: Workers / D1 / R2 / DO / KV</li>
+                                    <li>AWS: Fargate / RDS / EC2 / EBS / S3</li>
                                 </ul>
                             </li>
                             <li>
                                 Web
                                 <ul>
-                                    <li>Node / Deno / Bun</li>
-                                    <li>Vue / Nuxt</li>
-                                    <li>React / Next / TanStack</li>
-                                    <li>Three.js</li>
+                                    <li>Runtime: Node / Deno / Bun / CF</li>
+                                    <li>Lang: JS / C# / PHP</li>
+                                    <li>Libs: React / Vue / TanStack</li>
+                                    <li>FW: Next / Nuxt / Laravel / Dotnet</li>
+                                    <li>3D: Three.js / Unity</li>
                                 </ul>
                             </li>
                             <li>
                                 Data
                                 <ul>
-                                    <li>ElasticSearch / ELK Stack</li>
-                                    <li>SQL / NoSQL</li>
+                                    <li>SQL: MySQL / MSSQL / PostGres / SQlite / Turso</li>
+                                    <li>NoSQL: MongoDB / Redis</li>
+                                    <li>Other: ElasticSearch / OpenSearch / Manticore</li>
                                 </ul>
                             </li>
                         </ul>
@@ -412,6 +413,11 @@ document.addEventListener(
 );
 
 function toggleState(key) {
+    if (key === 'mouse') {
+        handleDirection({ forward: true });
+        return;
+    }
+
     if (NAV_KEYS.exit.includes(key)) {
         state.scene = SCENES.space;
         moving = true;
@@ -504,7 +510,7 @@ function init() {
     camera.add(audioListener);
 
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('/sounds/spaceloop.mp3', function (buffer) {
+    audioLoader.load('/sounds/spaceloop2.mp3', function (buffer) {
         sound.setBuffer(buffer);
         sound.setLoop(true);
         sound.setVolume(0.5);
@@ -513,7 +519,7 @@ function init() {
 
     function initAction(e) {
         moving = true;
-        
+
         if (e?.key && !ALLOWED_KEYS.includes(e?.key)) {
             return;
         }
@@ -1088,7 +1094,7 @@ onBeforeUnmount(() => {
             white-space: nowrap;
         }
 
-        .resume {
+        .resume-dl {
             cursor: pointer;
         }
 
