@@ -5,7 +5,7 @@
             class="globe-canvas"
         />
 
-        <div class="terminal-display">
+        <div class="terminal-display" :class="state.scene">
             <ul>
                 <li
                     v-for="(msg, i) in displayMsgs"
@@ -38,11 +38,18 @@
                 mode="out-in"
             >
                 <div
-                    v-if="!hudActive"
                     key="one"
                     class="start"
+                    v-if="!hudActive"
                 >
-                    Press Enter
+                    <!-- <div class="mission-statement">
+                        <h1>mission</h1>
+                        <p>
+                            To apply engineering, guided by Catholic teaching, to solve essential
+                            human problems in a rapidly changing world.
+                        </p>
+                    </div> -->
+                    <!-- <div class="start-btn">Press Enter</div> -->
                 </div>
                 <div
                     v-else-if="isScene(SCENES.moon)"
@@ -191,11 +198,7 @@
                 >
                     <div class="bg"></div>
                     <div class="content">
-                        <h1>mission</h1>
-                        <p>
-                            To apply engineering, guided by Catholic teaching, to solve essential human problems in a rapidly changing world.
-                        </p>
-                        <h3>Technologies</h3>
+                        <h1>Technologies</h1>
                         <ul class="main">
                             <li>
                                 Cloud
@@ -980,6 +983,23 @@ onBeforeUnmount(() => {
     gap: 0.5rem;
     user-select: none;
 
+    color: rgb(237, 237, 237);
+    color: white;
+    left: 20%;
+    bottom: 46%;
+
+    &.space {
+        height: 430px;
+        font-size: 1rem;
+        left: 50%;
+        transform: translate(-50%);
+        bottom: unset;
+    }
+
+    span {
+        text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.8);
+    }
+
     .cursor {
         width: 6px;
         height: 6px;
@@ -992,13 +1012,16 @@ onBeforeUnmount(() => {
     }
 
     .msg {
-        display: flex;
-        align-items: center;
+        white-space: pre;
+        /* display: flex; */
+        /* align-items: center; */
     }
 
     ul {
         margin: unset;
         padding: unset;
+        display: grid;
+        gap: 1.2rem;
     }
 }
 
@@ -1040,9 +1063,9 @@ onBeforeUnmount(() => {
 
     h3 {
         position: absolute;
-        top: -.75rem;
+        top: -0.75rem;
         background: black;
-        padding-inline: .5rem;
+        padding-inline: 0.5rem;
         text-align: center;
         margin-bottom: 0.3rem;
     }
@@ -1074,13 +1097,13 @@ onBeforeUnmount(() => {
 
     .bg {
         /* background: radial-gradient(circle at center, rgba(0, 0, 0, 0.695) 56%, transparent 92%); */
-        background: radial-gradient(rgba(0, 0, 0, 0.7) 10.6%, transparent 87.5%);
-        position: absolute;
+        /* background: radial-gradient(rgba(0, 0, 0, 0.7) 10.6%, transparent 87.5%); */
+        /* position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        opacity: 1;
+        opacity: 1; */
     }
 
     .content {
@@ -1089,6 +1112,7 @@ onBeforeUnmount(() => {
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        text-shadow: 0px 0px 2px rgba(0, 0, 0, 1);
 
         h1 {
             white-space: nowrap;
@@ -1136,7 +1160,20 @@ onBeforeUnmount(() => {
     }
 
     .start {
-        font-size: 3rem;
+        text-align: center;
+        width: 350px;
+
+        .mission-statement {
+            text-align: justify;
+
+            p {
+                margin-block: 2rem;
+            }
+        }
+
+        .start-btn {
+            font-size: 3rem;
+        }
     }
 
     &:has(.sun) {
