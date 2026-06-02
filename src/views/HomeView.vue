@@ -11,7 +11,7 @@
                     v-for="(msg, i) in displayMsgs"
                     class="msg"
                 >
-                    <span>
+                    <span class="msg-body">
                         {{ msg.toUpperCase() }}
                     </span>
                     <span
@@ -1001,6 +1001,7 @@ onBeforeUnmount(() => {
     }
 
     .cursor {
+        display: inline-block;
         width: 6px;
         height: 6px;
         border-radius: 50%;
@@ -1012,9 +1013,12 @@ onBeforeUnmount(() => {
     }
 
     .msg {
+        display: flex;
+        align-items: center;
+    }
+
+    .msg-body {
         white-space: pre;
-        /* display: flex; */
-        /* align-items: center; */
     }
 
     ul {
