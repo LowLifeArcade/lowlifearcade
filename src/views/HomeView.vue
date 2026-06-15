@@ -89,21 +89,21 @@
                                 <span>PeopleFinders Inc</span>
                                 <span
                                     ><span class="position">engineer | </span
-                                    ><span class="dates">Apr 2023 - Nov 2025</span></span
+                                    ><span class="dates">Apr 2022 - Nov 2025</span></span
                                 >
                             </li>
                             <li>
                                 <span>MHF Foundation</span
                                 ><span
                                     ><span class="position">engineer | </span
-                                    ><span class="dates">Jun 2022 - Mar 2023</span></span
+                                    ><span class="dates">Sep 2021 - Mar 2022</span></span
                                 >
                             </li>
                             <li>
                                 <span>IT Contractor</span>
                                 <span
                                     ><span class="position">engineer | </span
-                                    ><span class="dates">Mar 2020 - Jun 2022</span></span
+                                    ><span class="dates">Dec 2020 - Sep 2021</span></span
                                 >
                             </li>
                             <li>
@@ -448,12 +448,12 @@ function toggleState(key) {
 }
 
 const downloadFile = async () => {
-    const response = await fetch('/sonny_brown_resume_2026.docx');
+    const response = await fetch('/sonny_brown_resume_2026_v3.docx');
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'sonny_brown_resume_2026.docx';
+    link.download = 'sonny_brown_resume_2026_v3.docx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
