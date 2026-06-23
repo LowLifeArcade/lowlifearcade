@@ -224,6 +224,30 @@
                                 /></a>
                                 <p class="desc">Mange your prayer life with detail</p>
                             </li>
+                            <li>
+                                <a
+                                    href="https://pilgrim-of-the-thorn-web.moonbeam.workers.dev/"
+                                    target="_blank"
+                                    >Pilgram of the Thorn Game
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">A Catholic exploration game</p>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://chargefrog.moonbeam.workers.dev/"
+                                    target="_blank"
+                                    >Charge Frog
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">Connect to your site via API. Manage your products and sales on the app dashboard</p>
+                            </li>
                         </ul>
                     </div>
                 </div>
