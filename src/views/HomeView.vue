@@ -202,6 +202,18 @@
                             </li>
                             <li>
                                 <a
+                                    href="https://lowlifearcade-harness.moonbeam.workers.dev/"
+                                    target="_blank"
+                                    >LowLifeArcade Harness
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">An AI web harness</p>
+                            </li>
+                            <li>
+                                <a
                                     href="https://stepthrough.moonbeam.workers.dev/"
                                     target="_blank"
                                     >Step Through Creator App
@@ -234,7 +246,7 @@
                                         height="14"
                                         alt="link"
                                 /></a>
-                                <p class="desc">A Catholic exploration game</p>
+                                <p class="desc">A Catholic action sword wielding game</p>
                             </li>
                             <li>
                                 <a
@@ -247,6 +259,18 @@
                                         alt="link"
                                 /></a>
                                 <p class="desc">Connect to your site via API. Manage your products and sales on the app dashboard</p>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://snowpilgrims.moonbeam.workers.dev/"
+                                    target="_blank"
+                                    >Snow Pilgrams
+                                    <img
+                                        src="/public/link.svg"
+                                        height="14"
+                                        alt="link"
+                                /></a>
+                                <p class="desc">A platform adventure game ala SOTN</p>
                             </li>
                         </ul>
                     </div>
@@ -1158,6 +1182,8 @@ onBeforeUnmount(() => {
     color: #dddddd;
     font-size: 1rem;
     padding: 2rem;
+    max-height: 90vh;
+    overflow: scroll;
 
     .bg {
         /* background: radial-gradient(circle at center, rgba(0, 0, 0, 0.695) 56%, transparent 92%); */
